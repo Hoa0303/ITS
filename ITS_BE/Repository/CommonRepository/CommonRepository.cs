@@ -39,9 +39,15 @@ namespace ITS_BE.Repository.CommonRepository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<T?> FindAsync(params object?[]? keyValues)
+        public async Task DeleteAsync(IEnumerable<T> entities)
         {
-            return await _context.FindAsync<T?>(keyValues);
+            _context.RemoveRange(entities);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual async Task<T?> FindAsync(params object?[]? keyValues)
+        {
+            return await _context.FindAsync<T>(keyValues);
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()

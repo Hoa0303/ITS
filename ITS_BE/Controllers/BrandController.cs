@@ -52,7 +52,7 @@ namespace ITS_BE.Controllers
         {
             try
             {
-                var img = files.Files.First();
+                var img = files.Files.FirstOrDefault();
                 var brand = await _brandService.UpdateBrand(id, request.Name, img);
                 return Ok(brand);
             }

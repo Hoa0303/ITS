@@ -61,10 +61,13 @@ namespace ITS_BE.Services.AuthSevices
                 if (user != null)
                 {
                     var token = await CreateJwt(user);
+                    var roles = await _userManager.GetRolesAsync(user);
+                    var role = roles.FirstOrDefault();
                     return new JwtResponse
                     {
                         Jwt = token,
-                        name = user.FullName,
+                        Name = user.FullName,
+                        Role = role,
                     };
                 }
                 throw new Exception("User not found");

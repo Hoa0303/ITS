@@ -1,23 +1,25 @@
 ﻿using ITS_BE.Request;
-using ITS_BE.Services.Categories;
+using ITS_BE.Services.Colors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITS_BE.Controllers
 {
-    [Route("api/categories")]
+    [Route("api/color")]
     [ApiController]
-    public class CategoryController(ICateroryService cateroryService) : ControllerBase
+    public class ColorController : ControllerBase
     {
-        private readonly ICateroryService _cateroryService = cateroryService;
+        private readonly IColorService _colorService;
+
+        public ColorController(IColorService colorService) => _colorService = colorService;
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetColor()
         {
             try
             {
-                var categories = await _cateroryService.GetCategoriesAsync();
-                return Ok(categories);
+                var color = await _colorService.GetColors();
+                return Ok(color);
             }
             catch (Exception ex)
             {
@@ -26,13 +28,12 @@ namespace ITS_BE.Controllers
         }
 
         [HttpPost("create")]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] NameRequest request)
+        public async Task<IActionResult> CreateColor([FromBody] NameRequest request)
         {
             try
             {
-                var result = await _cateroryService.AddCategory(request.Name);
-                return Ok(result);
+                var color = await _colorService.AddColorsAsync(request.Name);
+                return Ok(color);
             }
             catch (Exception ex)
             {
@@ -41,12 +42,11 @@ namespace ITS_BE.Controllers
         }
 
         [HttpPut("update/{id}")]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, [FromBody] NameRequest request)
+        public async Task<IActionResult> UpdateColor(int id, [FromBody] NameRequest request)
         {
             try
             {
-                var result = await _cateroryService.UpdateCategory(id, request.Name);
+                var result = await _colorService.UpdateColorsAsync(id, request.Name);
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -60,12 +60,11 @@ namespace ITS_BE.Controllers
         }
 
         [HttpDelete("delete/{id}")]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> DeleteColor(int id)
         {
             try
             {
-                await _cateroryService.DeleteCategory(id);
+                await _colorService.DeleteColorsAsync(id);
                 return NoContent();
             }
             catch (ArgumentException ex)

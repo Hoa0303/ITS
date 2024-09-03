@@ -3,6 +3,7 @@ using System;
 using ITS_BE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ITS_BE.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240823081602_detail")]
+    partial class detail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,12 +143,12 @@ namespace ITS_BE.Migrations
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("Discount")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdateAt")
                         .HasColumnType("timestamp without time zone");
@@ -174,13 +177,7 @@ namespace ITS_BE.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double>("Prices")
-                        .HasColumnType("double precision");
-
                     b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -200,9 +197,8 @@ namespace ITS_BE.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Battery")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Battery")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Cpu")
                         .IsRequired()
@@ -241,6 +237,9 @@ namespace ITS_BE.Migrations
 
                     b.Property<DateTime?>("UpdateAt")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<double>("price")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("size")
                         .IsRequired()

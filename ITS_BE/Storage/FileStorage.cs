@@ -67,7 +67,25 @@
 
         public Task SaveAsync(string path, IFormFileCollection files, IList<string> fileNames)
         {
-            var p = Path.Combine(Directory.GetCurrentDirectory(), "wwwroor", path);
+            var p = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", path);
+            if (!Directory.Exists(p))
+            {
+                Directory.CreateDirectory(p);
+            }
+            var tasks = files.Select(async (file, index) =>
+            {
+                var filePath = Path.Combine(p, fileNames[index]);
+                using (var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write))
+                {
+                    await file.CopyToAsync(stream);
+                }
+            });
+            return Task.WhenAll(tasks);
+        }
+
+        public Task SaveAsync(string path, IList<IFormFile> files, IList<string> fileNames)
+        {
+            var p = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", path);
             if (!Directory.Exists(p))
             {
                 Directory.CreateDirectory(p);

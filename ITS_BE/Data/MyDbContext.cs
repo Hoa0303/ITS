@@ -12,7 +12,11 @@ namespace ITS_BE.Data
         }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Brand> Brands { get; set; }
-
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Image> Images { get; set; }
+        public DbSet<Color> Colors { get; set; }
+        public DbSet<Product_Color> Product_Colors { get; set; }
+        public DbSet<Product_Details> Product_Details { get; set; }
         private void UpdateTimestamps()
         {
             var entries = ChangeTracker.Entries()

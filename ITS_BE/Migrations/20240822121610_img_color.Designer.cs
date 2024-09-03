@@ -3,6 +3,7 @@ using System;
 using ITS_BE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ITS_BE.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240822121610_img_color")]
+    partial class img_color
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,12 +143,12 @@ namespace ITS_BE.Migrations
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("Discount")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdateAt")
                         .HasColumnType("timestamp without time zone");
@@ -174,13 +177,7 @@ namespace ITS_BE.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double>("Prices")
-                        .HasColumnType("double precision");
-
                     b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -190,71 +187,6 @@ namespace ITS_BE.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("Product_Colors");
-                });
-
-            modelBuilder.Entity("ITS_BE.Models.Product_Details", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Battery")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Cpu")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("FrontCam")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Material")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Ram")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("RearCam")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Rom")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ScanHz")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<float>("SizeScreen")
-                        .HasColumnType("real");
-
-                    b.Property<DateTime?>("UpdateAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("size")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<float>("weight")
-                        .HasColumnType("real");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId")
-                        .IsUnique();
-
-                    b.ToTable("Product_Details");
                 });
 
             modelBuilder.Entity("ITS_BE.Models.User", b =>
@@ -506,17 +438,6 @@ namespace ITS_BE.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ITS_BE.Models.Product_Details", b =>
-                {
-                    b.HasOne("ITS_BE.Models.Product", "Product")
-                        .WithOne("Details")
-                        .HasForeignKey("ITS_BE.Models.Product_Details", "ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -570,8 +491,6 @@ namespace ITS_BE.Migrations
 
             modelBuilder.Entity("ITS_BE.Models.Product", b =>
                 {
-                    b.Navigation("Details");
-
                     b.Navigation("Images");
                 });
 #pragma warning restore 612, 618

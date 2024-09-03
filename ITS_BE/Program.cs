@@ -3,9 +3,16 @@ using ITS_BE.Mapping;
 using ITS_BE.Models;
 using ITS_BE.Repository.BrandRepository;
 using ITS_BE.Repository.CategoryRepository;
+using ITS_BE.Repository.ColorRespository;
+using ITS_BE.Repository.ImageRepository;
+using ITS_BE.Repository.ProductColorRepository;
+using ITS_BE.Repository.ProductDetailRepository;
+using ITS_BE.Repository.ProductRepository;
 using ITS_BE.Services.AuthSevices;
 using ITS_BE.Services.Brands;
 using ITS_BE.Services.Categories;
+using ITS_BE.Services.Colors;
+using ITS_BE.Services.Products;
 using ITS_BE.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +28,14 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(opt => opt.AddPolicy("MyCors", opt =>
+{
+    opt.WithOrigins("http://localhost:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+}));
 
 builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -58,13 +73,18 @@ builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddScoped<IFileStorage, FileStorage>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICateroryService, CategoryService>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IColorService, ColorService>();
+builder.Services.AddScoped<IProductColorRepository, ProductColorRepository>();
+builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();
 
 builder.Services.AddScoped<ICateroryRepository, CaterogyRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
-
-
-builder.Services.AddScoped<ICateroryService, CategoryService>();
-builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IImageRepository, ImageRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IColorRepository, ColorRepository>();
 
 var app = builder.Build();
 
@@ -77,6 +97,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
+app.UseCors("MyCors");
 app.UseStaticFiles();
 
 app.UseAuthentication();
