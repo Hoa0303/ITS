@@ -8,6 +8,7 @@ namespace ITS_BE.Repository.ProductRepository
         Task<IEnumerable<Product>> GetPageProduct(int page, int pageSize, string search);
         Task<IEnumerable<Product>> GetPageProduct(int page, int pageSize);
         Task<Product?> SingleOrDefaultAsync(int id);
+        Task<IEnumerable<Product>> SearchAsync(string search);
         Task<int> CountAsync(string search);
         Task<Product?> GetProductById(int id);
     }

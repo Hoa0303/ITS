@@ -63,7 +63,8 @@ namespace ITS_BE.Services.Brands
         public async Task<IEnumerable<BrandDTO>> GetAllBrand()
         {
             var brands = await _brandRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<BrandDTO>>(brands);
+            var sortedBrands = brands.OrderBy(brand => brand.CreateAt);
+            return _mapper.Map<IEnumerable<BrandDTO>>(sortedBrands);
         }
 
         public async Task<BrandDTO> UpdateBrand(int id, string Name, IFormFile? img)

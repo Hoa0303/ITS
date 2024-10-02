@@ -3,6 +3,7 @@ using ITS_BE.Models;
 using ITS_BE.Repository.CommonRepository;
 using ITS_BE.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ITS_BE.Repository.ProductRepository
 {
@@ -39,6 +40,17 @@ namespace ITS_BE.Repository.ProductRepository
                 .ToListAsync();
         }
 
+        public override async Task<Product?> SingleOrDefaultAsync(Expression<Func<Product, bool>> expression)
+        {
+            return await _context.Products
+               .Include(e => e.Brand)
+               .Include(e => e.Category)
+               .Include(e => e.Details)
+               .Include(e => e.Images)
+               .Include(e => e.Product_Colors)
+               .SingleOrDefaultAsync(expression);
+        }
+
         public async Task<Product?> GetProductById(int id)
         {
             return await _context.Products
@@ -46,6 +58,7 @@ namespace ITS_BE.Repository.ProductRepository
                 .Include(e => e.Category)
                 .Include(e => e.Details)
                 .Include(e => e.Images)
+                .Include(e => e.Product_Colors)
                 .SingleOrDefaultAsync(e => e.Id == id);
         }
 
@@ -53,5 +66,13 @@ namespace ITS_BE.Repository.ProductRepository
         {
             return await _context.Products.Include(e => e.Images).SingleOrDefaultAsync(e => e.Id == id);
         }
+
+        public async Task<IEnumerable<Product>> SearchAsync(string search)
+        {
+            return await _context.Products
+                .Where(p => p.Name.Contains(search) || p.Details.line.Contains(search))
+                .ToListAsync();
+        }
+
     }
 }

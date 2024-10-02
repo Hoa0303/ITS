@@ -49,6 +49,39 @@ namespace ITS_BE.Migrations
                     b.ToTable("Brands");
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.CartItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ColorId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CartItems");
+                });
+
             modelBuilder.Entity("ITS_BE.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -143,6 +176,9 @@ namespace ITS_BE.Migrations
                     b.Property<int>("Discount")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("Enable")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -215,6 +251,10 @@ namespace ITS_BE.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Gpu")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Material")
                         .IsRequired()
                         .HasColumnType("text");
@@ -242,7 +282,15 @@ namespace ITS_BE.Migrations
                     b.Property<DateTime?>("UpdateAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("line")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("size")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("version")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -457,6 +505,25 @@ namespace ITS_BE.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.CartItem", b =>
+                {
+                    b.HasOne("ITS_BE.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ITS_BE.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ITS_BE.Models.Image", b =>
                 {
                     b.HasOne("ITS_BE.Models.Product", "Product")
@@ -490,13 +557,13 @@ namespace ITS_BE.Migrations
             modelBuilder.Entity("ITS_BE.Models.Product_Color", b =>
                 {
                     b.HasOne("ITS_BE.Models.Color", "Color")
-                        .WithMany()
+                        .WithMany("Product_Colors")
                         .HasForeignKey("ColorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ITS_BE.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("Product_Colors")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -568,11 +635,18 @@ namespace ITS_BE.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.Color", b =>
+                {
+                    b.Navigation("Product_Colors");
+                });
+
             modelBuilder.Entity("ITS_BE.Models.Product", b =>
                 {
                     b.Navigation("Details");
 
                     b.Navigation("Images");
+
+                    b.Navigation("Product_Colors");
                 });
 #pragma warning restore 612, 618
         }

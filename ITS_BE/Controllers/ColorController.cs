@@ -1,25 +1,24 @@
 ﻿using ITS_BE.Request;
 using ITS_BE.Services.Colors;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITS_BE.Controllers
 {
-    [Route("api/color")]
+    [Route("api/colors")]
     [ApiController]
-    public class ColorController : ControllerBase
+    public class ColorController(IColorService colorService) : ControllerBase
     {
-        private readonly IColorService _colorService;
-
-        public ColorController(IColorService colorService) => _colorService = colorService;
+        private readonly IColorService _colorService = colorService;
 
         [HttpGet]
-        public async Task<IActionResult> GetColor()
+        public async Task<IActionResult> GetColors()
         {
             try
             {
-                var color = await _colorService.GetColors();
-                return Ok(color);
+                var colors = await _colorService.GetColors();
+                return Ok(colors);
             }
             catch (Exception ex)
             {
@@ -27,7 +26,8 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPost("create")]
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateColor([FromBody] NameRequest request)
         {
             try
@@ -41,7 +41,22 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetColor(int id)
+        {
+            try
+            {
+                var colors = await _colorService.GetColorById(id);
+                return Ok(colors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateColor(int id, [FromBody] NameRequest request)
         {
             try
@@ -59,7 +74,8 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteColor(int id)
         {
             try

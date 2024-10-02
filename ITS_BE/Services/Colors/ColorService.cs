@@ -28,6 +28,12 @@ namespace ITS_BE.Services.Colors
 
         public async Task DeleteColorsAsync(int id) => await _colorRepository.DeleteAsync(id);
 
+        public async Task<ColorDTO> GetColorById(int id)
+        {
+            var color = await _colorRepository.FindAsync(id);
+            return _mapper.Map<ColorDTO>(color);
+        }
+
         public async Task<IEnumerable<ColorDTO>> GetColors()
         {
             var colors = await _colorRepository.GetAllAsync();

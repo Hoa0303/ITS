@@ -1,5 +1,6 @@
 ﻿using ITS_BE.Request;
 using ITS_BE.Services.Products;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITS_BE.Controllers
@@ -23,7 +24,42 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpGet("get/{id}")]
+
+        [HttpGet("filters")]
+        public async Task<IActionResult> GetFilterProducts([FromQuery] Filters filters)
+        {
+            try
+            {
+                var result = await _productService.GetFilterProductAsync(filters);
+                return Ok(result);
+            }
+            catch (AggregateException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("findversion")]
+        public async Task<IActionResult> FindVersionProducts(string request)
+        {
+            try
+            {
+                var res = await _productService.GetAllProductVersionsAsync(request);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -41,15 +77,14 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPost("create")]
-        //public async Task<IActionResult> Create([FromForm] ProductRequest request, [FromForm] IFormCollection form)
-        public async Task<IActionResult> Create([FromForm] ProductRequest request, [FromForm] IFormFileCollection form) //Test trên swagger
+
+        [HttpPost("")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([FromForm] ProductRequest request, [FromForm] IFormFileCollection form)
 
         {
             try
             {
-                //var image = form.Files;
-                //var image = form; //Test trên swagger
                 var product = await _productService.CreateProduct(request, form);
                 return Ok(product);
             }
@@ -59,12 +94,15 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(int id, [FromForm] ProductRequest request, IFormFileCollection form)
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(int id, [FromForm] ProductRequest request, [FromForm] IFormCollection form)
         {
             try
             {
-                var result = await _productService.UpdateProduct(id, request, form);
+                var img = form.Files;
+                var result = await _productService.UpdateProduct(id, request, img);
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -77,7 +115,29 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
+
+        [HttpPut("updateEnable/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateEnable(int id, [FromBody] UpdateEnableRequest request)
+        {
+            try
+            {
+                var res = await _productService.UpdateEnableRequest(id, request);
+                return Ok(res);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -94,7 +154,6 @@ namespace ITS_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
 
     }
 }

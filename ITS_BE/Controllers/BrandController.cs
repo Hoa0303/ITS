@@ -1,5 +1,6 @@
 ﻿using ITS_BE.Request;
 using ITS_BE.Services.Brands;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,8 +31,9 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPost("create")]
-        //[Authorize(Roles = "Admin")]
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> CreateBrand([FromForm] NameRequest request, [FromForm] IFormFileCollection files)
         {
             try
@@ -46,8 +48,9 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        //[Authorize(Roles = "Admin")]
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UpdateBrand(int id, [FromForm] NameRequest request, [FromForm] IFormCollection files)
         {
             try
@@ -66,8 +69,9 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        //[Authorize(Roles = "Admin")]
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeletaBrand(int id)
         {
             try

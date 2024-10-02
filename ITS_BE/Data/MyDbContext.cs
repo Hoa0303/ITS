@@ -17,6 +17,7 @@ namespace ITS_BE.Data
         public DbSet<Color> Colors { get; set; }
         public DbSet<Product_Color> Product_Colors { get; set; }
         public DbSet<Product_Details> Product_Details { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
         private void UpdateTimestamps()
         {
             var entries = ChangeTracker.Entries()

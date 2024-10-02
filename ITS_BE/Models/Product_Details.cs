@@ -11,11 +11,14 @@
         public string RearCam { get; set; }
         public string FrontCam { get; set; }
         public string Cpu { get; set; }
+        public string Gpu { get; set; }
         public int Ram { get; set; }
         public int Rom { get; set; }
         public string Battery { get; set; }
         public string size { get; set; }
         public float weight { get; set; }
+        public string version { get; set; }
+        public string line { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
     }

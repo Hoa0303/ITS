@@ -1,5 +1,6 @@
 ﻿using ITS_BE.Request;
 using ITS_BE.Services.Categories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,8 +26,9 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPost("create")]
-        //[Authorize(Roles = "Admin")]
+
+        [HttpPost("")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] NameRequest request)
         {
             try
@@ -40,8 +42,9 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        //[Authorize(Roles = "Admin")]
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] NameRequest request)
         {
             try
@@ -59,8 +62,9 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        //[Authorize(Roles = "Admin")]
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

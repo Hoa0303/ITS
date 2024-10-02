@@ -1,12 +1,13 @@
 ﻿using ITS_BE.Data;
+using ITS_BE.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ITS_BE.Repository.CommonRepository
 {
-    public class CommonRepository<T> : ICommonRepository<T> where T : class
+    public class CommonRepository<T>(MyDbContext context) : ICommonRepository<T> where T : class
     {
-        private readonly MyDbContext _context;
-        public CommonRepository(MyDbContext context) => _context = context;
+        private readonly MyDbContext _context = context;
 
         public virtual async Task AddAsync(T entity)
         {
@@ -20,15 +21,20 @@ namespace ITS_BE.Repository.CommonRepository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<int> CountAsync() => await _context.Set<T>().CountAsync();
+        public virtual async Task<int> CountAsync() => await _context.Set<T>().CountAsync();
 
-        public async Task DeleteAsync(T entity)
+        public virtual async Task<int> CountAsync(Expression<Func<T, bool>> expression)
+            => await _context.Set<T>().
+                Where(expression)
+                .CountAsync();
+
+        public virtual async Task DeleteAsync(T entity)
         {
             _context.Remove(entity);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(params object?[]? keyValues)
+        public virtual async Task DeleteAsync(params object?[]? keyValues)
         {
             var entity = await _context.FindAsync<T>(keyValues);
             if (entity == null)
@@ -39,7 +45,7 @@ namespace ITS_BE.Repository.CommonRepository
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(IEnumerable<T> entities)
+        public virtual async Task DeleteAsync(IEnumerable<T> entities)
         {
             _context.RemoveRange(entities);
             await _context.SaveChangesAsync();
@@ -50,12 +56,31 @@ namespace ITS_BE.Repository.CommonRepository
             return await _context.FindAsync<T>(keyValues);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _context.Set<T>().ToListAsync();
         }
 
-        public async Task UpdateAsync(T entity)
+        public virtual async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> expression)
+           => await _context.Set<T>().Where(expression).ToArrayAsync();
+
+        public virtual async Task<IEnumerable<T>> GetPagedAsync<TKey>(int page, int pageSize, Expression<Func<T, bool>>? expression, Expression<Func<T, TKey>> orderBy)
+            => expression == null
+            ? await _context.Set<T>().OrderBy(orderBy).Paginate(page, pageSize).ToArrayAsync()
+            : await _context.Set<T>().Where(expression).OrderBy(orderBy).Paginate(page, pageSize).ToArrayAsync();
+
+        public virtual async Task<IEnumerable<T>> GetPagedOrderByDescendingAsync<TKey>(int page, int pageSize, Expression<Func<T, bool>>? expression, Expression<Func<T, TKey>> orderByDesc)
+            => expression == null
+            ? await _context.Set<T>().OrderByDescending(orderByDesc).Paginate(page, pageSize).ToArrayAsync()
+            : await _context.Set<T>().Where(expression).OrderByDescending(orderByDesc).Paginate(page, pageSize).ToArrayAsync();
+
+        public async Task<T> SingleAsync(Expression<Func<T, bool>> expression)
+            => await _context.Set<T>().SingleAsync(expression);
+
+        public virtual async Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> expression)
+            => await _context.Set<T>().SingleOrDefaultAsync(expression);
+
+        public virtual async Task UpdateAsync(T entity)
         {
             _context.Update(entity);
             await _context.SaveChangesAsync();

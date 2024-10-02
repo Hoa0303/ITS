@@ -15,6 +15,7 @@ namespace ITS_BE.Mapping
             CreateMap<Category, CategoryDTO>().ReverseMap();
             CreateMap<Color, ColorDTO>().ReverseMap();
             CreateMap<Product, ProductDTO>().ReverseMap();
+            CreateMap<Product, VersionDTO>().ReverseMap();
             CreateMap<Product, ProductDTO>()
                 .ForMember(des => des.BrandName, opt => opt.MapFrom(src => src.Brand.Name))
                 .ForMember(des => des.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
@@ -34,22 +35,14 @@ namespace ITS_BE.Mapping
 
             CreateMap<ProductRequest, Product>();
 
-            CreateMap<Product, ProductDetailRespone>()
-               .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.Name))
-               .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-               .ForMember(dest => dest.SizeScreen, opt => opt.MapFrom(src => src.Details.SizeScreen))
-               .ForMember(dest => dest.ScanHz, opt => opt.MapFrom(src => src.Details.ScanHz))
-               .ForMember(dest => dest.Material, opt => opt.MapFrom(src => src.Details.Material))
-               .ForMember(dest => dest.RearCam, opt => opt.MapFrom(src => src.Details.RearCam))
-               .ForMember(dest => dest.FrontCam, opt => opt.MapFrom(src => src.Details.FrontCam))
-               .ForMember(dest => dest.Cpu, opt => opt.MapFrom(src => src.Details.Cpu))
-               .ForMember(dest => dest.Ram, opt => opt.MapFrom(src => src.Details.Ram))
-               .ForMember(dest => dest.Rom, opt => opt.MapFrom(src => src.Details.Rom))
-               .ForMember(dest => dest.Battery, opt => opt.MapFrom(src => src.Details.Battery))
-               .ForMember(dest => dest.size, opt => opt.MapFrom(src => src.Details.size))
-               .ForMember(dest => dest.weight, opt => opt.MapFrom(src => src.Details.weight))
-               .ForMember(dest => dest.ImageUrls, opt => opt.Ignore())
-               .ForMember(dest => dest.Color, opt => opt.Ignore());
+            CreateMap<Product_Details, ProductDetailRespone>()
+               .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Product.Id))
+               .ForMember(dest => dest.BrandId, opt => opt.MapFrom(src => src.Product.Brand.Id))
+               .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Product.Brand.Name))
+               .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Product.Category.Name))
+               .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Product.CategoryId))
+               .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Product.Discount))
+               .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Product.Name));
 
             CreateMap<Product_Color, ColorResponse>()
                 .ForMember(dest => dest.ColorId, opt => opt.MapFrom(src => src.ColorId))

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ITS_BE.Constants;
 using ITS_BE.DTO;
+using ITS_BE.Enum;
 using ITS_BE.Models;
 using ITS_BE.Repository.ImageRepository;
 using ITS_BE.Repository.ProductColorRepository;
@@ -10,6 +11,7 @@ using ITS_BE.Request;
 using ITS_BE.Response;
 using ITS_BE.Storage;
 using Microsoft.IdentityModel.Tokens;
+using System.Linq.Expressions;
 
 namespace ITS_BE.Services.Products
 {
@@ -60,39 +62,24 @@ namespace ITS_BE.Services.Products
 
                 IList<string> imgColors = new List<string>();
                 IList<IFormFile> files = new List<IFormFile>();
-                //var productColors = request.Color.Select(color =>
-                //{
-                //    var name = Guid.NewGuid().ToString() + Path.GetExtension(color.File.FileName);
-                //    imgColors.Add(name);
-                //    files.Add(color.File);
-                //    var productcolor = new Product_Color()
-                //    {
-                //        ProductId = product.Id,
-                //        ColorId = color.ColorId,
-                //        Prices = color.Prices,
-                //        Quantity = color.Quantity,
-                //        ImageUrl = Path.Combine(path1, name)
-                //    };
-                //    return productcolor;
-                //});
-                //await _productColorRepository.AddAsync(productColors);
+                var productColors = request.Color.Select(color =>
+                {
+                    var name = Guid.NewGuid().ToString() + Path.GetExtension(color.File.FileName);
+                    imgColors.Add(name);
+                    files.Add(color.File);
+                    var productcolor = new Product_Color()
+                    {
+                        ProductId = product.Id,
+                        ColorId = color.ColorId,
+                        Prices = color.Prices,
+                        Quantity = color.Quantity,
+                        ImageUrl = Path.Combine(path1, name)
+                    };
+                    return productcolor;
+                });
+                await _productColorRepository.AddAsync(productColors);
                 await _fileStorage.SaveAsync(path1, files, imgColors);
 
-                //var productDetail = new Product_Details()
-                //{
-                //    SizeScreen = request.Details.SizeScreen,
-                //    ScanHz = request.Details.ScanHz,
-                //    Material = request.Details.Material,
-                //    RearCam = request.Details.RearCam,
-                //    FrontCam = request.Details.FrontCam,
-                //    Cpu = request.Details.Cpu,
-                //    Ram = request.Details.Ram,
-                //    Rom = request.Details.Rom,
-                //    Battery = request.Details.Battery,
-                //    size = request.Details.size,
-                //    weight = request.Details.weight,
-                //    price = request.Details.price,
-                //};
                 var productDetail = _mapper.Map<Product_Details>(request.Details);
                 productDetail.ProductId = product.Id;
                 await _productDetailRepository.AddAsync(productDetail);
@@ -148,6 +135,19 @@ namespace ITS_BE.Services.Products
                     {
                         product.ImageUrl = image.ImageUrl;
                     }
+                    var color = await _productColorRepository.GetFirstColorByProductAsync(product.Id);
+                    if (color != null)
+                    {
+                        product.Price = color.Prices;
+                    }
+                    var detail = (await _productDetailRepository.GetDetailProductAsync(product.Id)).FirstOrDefault();
+                    if (detail != null)
+                    {
+                        product.SizeScreen = detail.SizeScreen;
+                        product.Ram = detail.Ram;
+                        product.Rom = detail.Rom;
+                        product.Cpu = detail.Cpu;
+                    }
                 }
                 return new PageRespone<ProductDTO>
                 {
@@ -163,15 +163,132 @@ namespace ITS_BE.Services.Products
             }
         }
 
+        private Expression<Func<T, bool>> CombineExpressions<T>(Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
+        {
+            var parameter = expr1.Parameters[0];
+            var body = Expression.AndAlso(expr1.Body, Expression.Invoke(expr2, parameter));
+            return Expression.Lambda<Func<T, bool>>(body, parameter);
+        }
+
+        public async Task<PageRespone<ProductDTO>> GetFilterProductAsync(Filters filters)
+        {
+            try
+            {
+                int totalProduct = 0;
+                IEnumerable<Product> products = [];
+                Expression<Func<Product, bool>> expression = e => e.Enable;
+
+                if (filters.MinPrice != null && filters.MaxPrice != null)
+                {
+                    expression = CombineExpressions(expression, e =>
+                        (e.Product_Colors.FirstOrDefault().Prices - (e.Product_Colors.FirstOrDefault().Prices * (e.Discount / 100.0))) >= filters.MinPrice
+                        &&
+                        (e.Product_Colors.FirstOrDefault().Prices - (e.Product_Colors.FirstOrDefault().Prices * (e.Discount / 100.0))) <= filters.MaxPrice
+                    );
+                }
+                else
+                {
+                    if (filters.MinPrice != null)
+                    {
+                        expression = CombineExpressions(expression, e => (e.Product_Colors.FirstOrDefault().Prices - (e.Product_Colors.FirstOrDefault().Prices * (e.Discount / 100.0))) >= filters.MinPrice);
+                    }
+                    else if (filters.MaxPrice != null)
+                    {
+                        expression = CombineExpressions(expression, e => (e.Product_Colors.FirstOrDefault().Prices - (e.Product_Colors.FirstOrDefault().Prices * (e.Discount / 100.0))) <= filters.MaxPrice);
+                    }
+                }
+
+                if (filters.CategoryIds != null && filters.CategoryIds.Count() > 0)
+                {
+                    expression = CombineExpressions(expression, e => filters.CategoryIds.Contains(e.CategoryId));
+                }
+
+                if (filters.BrandIds != null && filters.BrandIds.Count() > 0)
+                {
+                    expression = CombineExpressions(expression, e => filters.BrandIds.Contains(e.BrandId));
+                }
+
+                if (filters.Ram != null && filters.Ram.Count() > 0)
+                {
+                    expression = CombineExpressions(expression, e => filters.Ram.Contains(e.Details.Ram));
+                }
+
+                totalProduct = await _productRepository.CountAsync(expression);
+                Expression<Func<Product, double>> priceExp = e => e.Product_Colors.FirstOrDefault().Prices - (e.Product_Colors.FirstOrDefault().Prices * (e.Discount / 100.00));
+
+                switch (filters.Sorter)
+                {
+                    case SortEnum.PRICE_ASC:
+                        products = await _productRepository
+                           .GetPagedAsync(filters.page, filters.pageSize, expression, priceExp);
+                        break;
+                    case SortEnum.PRICE_DESC:
+                        products = await _productRepository
+                           .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, priceExp);
+                        break;
+                    case SortEnum.NEWEST:
+                        products = await _productRepository
+                           .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
+                        break;
+
+                    default:
+                        products = await _productRepository
+                           .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
+                        break;
+                }
+
+                var res = _mapper.Map<IEnumerable<ProductDTO>>(products).ToList();
+
+                foreach (var product in res)
+                {
+                    var image = await _imageRepository.GetFirstByProductAsync(product.Id);
+                    if (image != null)
+                    {
+                        product.ImageUrl = image.ImageUrl;
+                    }
+                    var color = await _productColorRepository.GetFirstColorByProductAsync(product.Id);
+                    if (color != null)
+                    {
+                        product.Price = color.Prices;
+                    }
+                    var detail = (await _productDetailRepository.GetDetailProductAsync(product.Id)).FirstOrDefault();
+                    if (detail != null)
+                    {
+                        product.SizeScreen = detail.SizeScreen;
+                        product.Ram = detail.Ram;
+                        product.Rom = detail.Rom;
+                        product.Cpu = detail.Cpu;
+                    }
+                }
+
+                var distinctProducts = res
+                    .GroupBy(p => p.Name)
+                    .Select(g => g.OrderBy(p => p.Price).First())
+                    .ToList();
+
+                return new PageRespone<ProductDTO>
+                {
+                    Items = distinctProducts,
+                    Page = filters.page,
+                    PageSize = filters.pageSize,
+                    TotalItems = totalProduct
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
         public async Task<ProductDetailRespone> GetProductById(int id)
         {
-            var product = await _productRepository.GetProductById(id);
+            //var product = await _productRepository.GetProductById(id);
+            var product = await _productRepository.SingleOrDefaultAsync(e => e.Id == id);
             if (product != null)
             {
-                var res = _mapper.Map<ProductDetailRespone>(product);
+                var res = _mapper.Map<ProductDetailRespone>(product.Details);
                 res.ImageUrls = product.Images.Select(x => x.ImageUrl);
-                var productColors = await _productColorRepository.GetColorProductAsync(product.Id);
-                res.Color = _mapper.Map<IEnumerable<ColorResponse>>(productColors);
+                res.Color = _mapper.Map<IEnumerable<ColorResponse>>(product.Product_Colors);
                 return res;
             }
             else throw new ArgumentException($"Id {id}" + ErrorMessage.NOT_FOUND);
@@ -195,26 +312,59 @@ namespace ITS_BE.Services.Products
                     product.Details.RearCam = request.Details.RearCam;
                     product.Details.FrontCam = request.Details.FrontCam;
                     product.Details.Cpu = request.Details.Cpu;
+                    product.Details.Gpu = request.Details.Gpu;
                     product.Details.Ram = request.Details.Ram;
                     product.Details.Rom = request.Details.Rom;
                     product.Details.Battery = request.Details.Battery;
                     product.Details.size = request.Details.size;
                     product.Details.weight = request.Details.weight;
+                    product.Details.version = request.Details.version;
+                    product.Details.line = request.Details.line;
 
-                    var productColor = await _productColorRepository.GetColorProductAsync(id);
-                    List<Product_Color> colorDelete = new();
-                    if (productColor.IsNullOrEmpty())
+                    var existingProductColors = await _productColorRepository.GetColorProductAsync(id);
+                    var existingColorIds = existingProductColors.Select(pc => pc.ColorId).ToList();
+                    var requestColorIds = request.Color.Select(c => c.ColorId).ToList();
+
+                    var colorsToRemove = existingProductColors.Where(pc => !requestColorIds.Contains(pc.ColorId)).ToList();
+                    if (colorsToRemove.Any())
                     {
-                        colorDelete.AddRange(productColor);
+                        await _productColorRepository.DeleteAsync(colorsToRemove);
                     }
-                    else
+
+                    foreach (var colorRequest in request.Color)
                     {
-                        //var clDelete = productColor.Where(old => !request.Color.Contains(old.Color));
+                        var existingColor = existingProductColors.FirstOrDefault(pc => pc.ColorId == colorRequest.ColorId);
+                        if (existingColor != null)
+                        {
+                            existingColor.Prices = colorRequest.Prices;
+                            existingColor.Quantity = colorRequest.Quantity;
+
+                            if (colorRequest.File != null)
+                            {
+                                var newFileName = Guid.NewGuid().ToString() + Path.GetExtension(colorRequest.File.FileName);
+                                existingColor.ImageUrl = Path.Combine(path1, newFileName);
+
+                                await _fileStorage.SaveAsync(path1, new List<IFormFile> { colorRequest.File }, new List<string> { newFileName });
+                            }
+                        }
+                        else
+                        {
+                            var newFileName = Guid.NewGuid().ToString() + Path.GetExtension(colorRequest.File.FileName);
+                            var newProductColor = new Product_Color
+                            {
+                                ProductId = product.Id,
+                                ColorId = colorRequest.ColorId,
+                                Prices = colorRequest.Prices,
+                                Quantity = colorRequest.Quantity,
+                                ImageUrl = Path.Combine(path1, newFileName)
+                            };
+
+                            await _productColorRepository.AddAsync(newProductColor);
+                            await _fileStorage.SaveAsync(path1, new List<IFormFile> { colorRequest.File }, new List<string> { newFileName });
+                        }
                     }
 
-                    //var oldImg = await _imageRepository.GetImageProductAsync(id);
-                    var oldImg = product.Images;
-
+                    var oldImg = await _imageRepository.GetImageProductAsync(id);
                     List<Image> imageDelete = new();
                     if (request.ImageUrls.IsNullOrEmpty())
                     {
@@ -254,6 +404,50 @@ namespace ITS_BE.Services.Products
                 }
             }
             else throw new ArgumentException($"Id {id} " + ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task<bool> UpdateEnableRequest(int id, UpdateEnableRequest request)
+        {
+            var product = await _productRepository.FindAsync(id);
+            if (product != null)
+            {
+                product.Enable = request.Enable;
+                await _productRepository.UpdateAsync(product);
+                return product.Enable;
+            }
+            else throw new ArgumentException($"ID {id} " + ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task<IEnumerable<VersionDTO>> GetAllProductVersionsAsync(string request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request))
+                {
+                    throw new ArgumentException("Search parameter cannot be null or empty.");
+                }
+                var products = await _productRepository.SearchAsync(request);
+                var res = _mapper.Map<IEnumerable<VersionDTO>>(products);
+                foreach (var product in res)
+                {
+                    var color = await _productColorRepository.GetFirstColorByProductAsync(product.Id);
+                    if (color != null)
+                    {
+                        product.Price = color.Prices;
+                    }
+
+                    var detail = (await _productDetailRepository.GetDetailProductAsync(product.Id)).FirstOrDefault();
+                    if (detail != null)
+                    {
+                        product.Version = detail.version;
+                    }
+                }
+                return res;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 }
