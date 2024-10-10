@@ -3,6 +3,7 @@ using System;
 using ITS_BE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ITS_BE.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241007144028_User Address")]
+    partial class UserAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -199,125 +202,6 @@ namespace ITS_BE.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("Images");
-                });
-
-            modelBuilder.Entity("ITS_BE.Models.Order", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<double>("AmountPaid")
-                        .HasColumnType("double precision");
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("DeliveryAddress")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int?>("OrderStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("PaymentMethodId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("PaymentMethodName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PaymentTranId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Receiver")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<double>("Total")
-                        .HasColumnType("double precision");
-
-                    b.Property<DateTime?>("UpdateAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PaymentMethodId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("ITS_BE.Models.OrderDetail", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("ColorId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ColorName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("OrderId")
-                        .HasColumnType("bigint");
-
-                    b.Property<double>("OriginPrice")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("double precision");
-
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("OrderDetials");
-                });
-
-            modelBuilder.Entity("ITS_BE.Models.PaymentMethod", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PaymentMethods");
                 });
 
             modelBuilder.Entity("ITS_BE.Models.Product", b =>
@@ -716,38 +600,6 @@ namespace ITS_BE.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ITS_BE.Models.Order", b =>
-                {
-                    b.HasOne("ITS_BE.Models.PaymentMethod", "PaymentMethod")
-                        .WithMany("Orders")
-                        .HasForeignKey("PaymentMethodId");
-
-                    b.HasOne("ITS_BE.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("PaymentMethod");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ITS_BE.Models.OrderDetail", b =>
-                {
-                    b.HasOne("ITS_BE.Models.Order", "Order")
-                        .WithMany("OrderDetials")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ITS_BE.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId");
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("ITS_BE.Models.Product", b =>
                 {
                     b.HasOne("ITS_BE.Models.Brand", "Brand")
@@ -851,16 +703,6 @@ namespace ITS_BE.Migrations
             modelBuilder.Entity("ITS_BE.Models.Color", b =>
                 {
                     b.Navigation("Product_Colors");
-                });
-
-            modelBuilder.Entity("ITS_BE.Models.Order", b =>
-                {
-                    b.Navigation("OrderDetials");
-                });
-
-            modelBuilder.Entity("ITS_BE.Models.PaymentMethod", b =>
-                {
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("ITS_BE.Models.Product", b =>

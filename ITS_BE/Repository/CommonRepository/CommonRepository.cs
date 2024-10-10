@@ -85,5 +85,11 @@ namespace ITS_BE.Repository.CommonRepository
             _context.Update(entity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task UpdateAsync(IEnumerable<T> entities)
+        {
+            _context.UpdateRange(entities);
+            await _context.SaveChangesAsync();
+        }
     }
 }

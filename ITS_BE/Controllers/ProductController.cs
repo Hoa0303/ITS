@@ -45,7 +45,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpGet("findversion")]
-        public async Task<IActionResult> FindVersionProducts(string request)
+        public async Task<IActionResult> FindVersionProducts(string? request)
         {
             try
             {

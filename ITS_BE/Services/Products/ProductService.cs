@@ -213,6 +213,13 @@ namespace ITS_BE.Services.Products
                     expression = CombineExpressions(expression, e => filters.Ram.Contains(e.Details.Ram));
                 }
 
+                if (!string.IsNullOrEmpty(filters.search))
+                {
+                    var input = filters.search.Trim().Split(' ').Select(x => x.ToLower());
+
+                    expression = CombineExpressions(expression, e => input.All(x => e.Name.ToLower().Contains(x))); 
+                }
+
                 totalProduct = await _productRepository.CountAsync(expression);
                 Expression<Func<Product, double>> priceExp = e => e.Product_Colors.FirstOrDefault().Prices - (e.Product_Colors.FirstOrDefault().Prices * (e.Discount / 100.00));
 
@@ -226,17 +233,16 @@ namespace ITS_BE.Services.Products
                         products = await _productRepository
                            .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, priceExp);
                         break;
-                    case SortEnum.NEWEST:
+                    case SortEnum.NAME:
                         products = await _productRepository
-                           .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
+                           .GetPagedAsync(filters.page, filters.pageSize, expression, e => e.Name);
                         break;
 
                     default:
                         products = await _productRepository
-                           .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
+                           .GetPagedAsync(filters.page, filters.pageSize, expression, e => e.Name);
                         break;
                 }
-
                 var res = _mapper.Map<IEnumerable<ProductDTO>>(products).ToList();
 
                 foreach (var product in res)
@@ -261,14 +267,14 @@ namespace ITS_BE.Services.Products
                     }
                 }
 
-                var distinctProducts = res
-                    .GroupBy(p => p.Name)
-                    .Select(g => g.OrderBy(p => p.Price).First())
-                    .ToList();
+                //var distinctProducts = res
+                //    .GroupBy(p => p.Name)
+                //    .Select(g => g.OrderBy(p => p.Price).First())
+                //    .ToList();
 
                 return new PageRespone<ProductDTO>
                 {
-                    Items = distinctProducts,
+                    Items = res,
                     Page = filters.page,
                     PageSize = filters.pageSize,
                     TotalItems = totalProduct
@@ -418,14 +424,14 @@ namespace ITS_BE.Services.Products
             else throw new ArgumentException($"ID {id} " + ErrorMessage.NOT_FOUND);
         }
 
-        public async Task<IEnumerable<VersionDTO>> GetAllProductVersionsAsync(string request)
+        public async Task<IEnumerable<VersionDTO>> GetAllProductVersionsAsync(string? request)
         {
             try
             {
-                if (string.IsNullOrEmpty(request))
-                {
-                    throw new ArgumentException("Search parameter cannot be null or empty.");
-                }
+                //if (string.IsNullOrEmpty(request))
+                //{
+                //    throw new ArgumentException("Search parameter cannot be null or empty.");
+                //}
                 var products = await _productRepository.SearchAsync(request);
                 var res = _mapper.Map<IEnumerable<VersionDTO>>(products);
                 foreach (var product in res)

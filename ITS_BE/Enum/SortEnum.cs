@@ -2,7 +2,7 @@
 {
     public enum SortEnum
     {
-        NEWEST,
+        NAME,
         PRICE_ASC,
         PRICE_DESC,
     }

@@ -8,7 +8,7 @@ namespace ITS_BE.Services.Products
     {
         Task<PageRespone<ProductDTO>> GetAllProduct(int page, int pageSize, string? search);
         Task<PageRespone<ProductDTO>> GetFilterProductAsync(Filters filters);
-        Task<IEnumerable<VersionDTO>> GetAllProductVersionsAsync(string search);
+        Task<IEnumerable<VersionDTO>> GetAllProductVersionsAsync(string? search);
         Task<ProductDTO> CreateProduct(ProductRequest request, IFormFileCollection images);
         Task<ProductDetailRespone> GetProductById(int id);
         Task<ProductDTO> UpdateProduct(int id, ProductRequest request, IFormFileCollection images);

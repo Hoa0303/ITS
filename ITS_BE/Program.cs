@@ -1,4 +1,5 @@
 using ITS_BE.Data;
+using ITS_BE.Library;
 using ITS_BE.Mapping;
 using ITS_BE.Models;
 using ITS_BE.Repository.BrandRepository;
@@ -6,17 +7,22 @@ using ITS_BE.Repository.CartItemRepository;
 using ITS_BE.Repository.CategoryRepository;
 using ITS_BE.Repository.ColorRespository;
 using ITS_BE.Repository.ImageRepository;
+using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductDetailRepository;
 using ITS_BE.Repository.ProductRepository;
+using ITS_BE.Repository.UserRepository;
 using ITS_BE.Services.AuthSevices;
 using ITS_BE.Services.Brands;
 using ITS_BE.Services.Caching;
 using ITS_BE.Services.Carts;
 using ITS_BE.Services.Categories;
 using ITS_BE.Services.Colors;
+using ITS_BE.Services.Orders;
+using ITS_BE.Services.Payment;
 using ITS_BE.Services.Products;
 using ITS_BE.Services.SendEmail;
+using ITS_BE.Services.Users;
 using ITS_BE.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -109,13 +115,18 @@ builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddScoped<IFileStorage, FileStorage>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICateroryService, CategoryService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IColorService, ColorService>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IDeliveryAddressRepository, DeliveryAddressRepository>();
 builder.Services.AddScoped<IProductColorRepository, ProductColorRepository>();
 builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();
 builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
@@ -124,6 +135,11 @@ builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IColorRepository, ColorRepository>();
+builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
+
+builder.Services.AddScoped<IVNPayLibrary, VNPayLibrary>();
 
 var app = builder.Build();
 

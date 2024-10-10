@@ -11,9 +11,13 @@ namespace ITS_BE.Mapping
         public Mapping()
         {
             CreateMap<User, UserDTO>().ReverseMap();
+            CreateMap<User, UserResponse>().ReverseMap();
+            CreateMap<DeliveryAddress, AddressDTO>().ReverseMap();
+
             CreateMap<Brand, BrandDTO>().ReverseMap();
             CreateMap<Category, CategoryDTO>().ReverseMap();
             CreateMap<Color, ColorDTO>().ReverseMap();
+
             CreateMap<Product, ProductDTO>().ReverseMap();
             CreateMap<Product, VersionDTO>().ReverseMap();
             CreateMap<Product, ProductDTO>()
@@ -49,6 +53,11 @@ namespace ITS_BE.Mapping
                 .ForMember(dest => dest.Prices, opt => opt.MapFrom(src => src.Prices))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
+
+            CreateMap<PaymentMethodDTO, PaymentMethod>().ReverseMap();
+
+            CreateMap<OrderDTO, Order>().ReverseMap()
+                .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethodName));
         }
     }
 }

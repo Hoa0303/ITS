@@ -18,6 +18,10 @@ namespace ITS_BE.Data
         public DbSet<Product_Color> Product_Colors { get; set; }
         public DbSet<Product_Details> Product_Details { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<DeliveryAddress> DeliveryAddresses { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderDetail> OrderDetials { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
         private void UpdateTimestamps()
         {
             var entries = ChangeTracker.Entries()

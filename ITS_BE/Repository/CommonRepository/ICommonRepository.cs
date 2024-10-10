@@ -12,6 +12,7 @@ namespace ITS_BE.Repository.CommonRepository
         Task AddAsync(T entity);
         Task AddAsync(IEnumerable<T> entities);
         Task UpdateAsync(T entity);
+        Task UpdateAsync(IEnumerable<T> entities);
         Task DeleteAsync(T entity);
         Task DeleteAsync(IEnumerable<T> entity);
         Task DeleteAsync(params object?[]? keyValues);
