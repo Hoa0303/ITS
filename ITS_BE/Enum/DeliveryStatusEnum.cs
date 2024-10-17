@@ -6,6 +6,7 @@
         Confirmed,
         Shipping,
         Received,
+        Done,
         Canceled,
     }
 }

@@ -8,5 +8,6 @@ namespace ITS_BE.Services.Users
         Task<PageRespone<UserResponse>> GetAllAsync(int page, int pageSize, string? key);
         Task<AddressDTO?> GetUserAddress(string userId);
         Task<AddressDTO?> UpdateOrAddUserAddress(string userId, AddressDTO addressDTO);
+        Task LockOut(string id, DateTimeOffset? endDate);
     }
 }

@@ -37,6 +37,7 @@ namespace ITS_BE.Repository.ProductRepository
                 .Include(e => e.Brand)
                 .Include(e => e.Category)
                 .Paginate(page, pageSize)
+                .OrderBy(e => e.Name)
                 .ToListAsync();
         }
 
@@ -70,7 +71,7 @@ namespace ITS_BE.Repository.ProductRepository
         public async Task<IEnumerable<Product>> SearchAsync(string search)
         {
             return await _context.Products
-                .Where(p => p.Name.Contains(search) || p.Details.line.Contains(search))
+                .Where(p => p.Name.Contains(search) || (p.Details.line != "Default" && p.Details.line.Contains(search)))
                 .ToListAsync();
         }
 

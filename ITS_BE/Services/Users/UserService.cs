@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ITS_BE.Constants;
 using ITS_BE.DTO;
 using ITS_BE.Models;
 using ITS_BE.Repository.UserRepository;
@@ -40,10 +41,15 @@ namespace ITS_BE.Services.Users
                     || (e.PhoneNumber != null && e.PhoneNumber.Contains(key));
 
                 totalUser = await _userRepository.CountAsync(expression);
-                users = await _userRepository.GetPagedOrderByDescendingAsync(page, pageSize, null, e => e.CreateAt);
+                users = await _userRepository.GetPagedOrderByDescendingAsync(page, pageSize, expression, e => e.CreateAt);
             }
 
-            var items = _mapper.Map<IEnumerable<UserResponse>>(users);
+            var items = _mapper.Map<IEnumerable<UserResponse>>(users).Select(e =>
+            {
+                e.LockedOut = e.LockoutEnd > DateTime.Now;
+                e.LockoutEnd = e.LockoutEnd > DateTime.Now ? e.LockoutEnd : null;
+                return e;
+            });
 
             return new PageRespone<UserResponse>
             {
@@ -52,6 +58,20 @@ namespace ITS_BE.Services.Users
                 Page = page,
                 PageSize = pageSize,
             };
+        }
+
+        public async Task LockOut(string id, DateTimeOffset? endDate)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                if (endDate != null)
+                    user.LockoutEnd = endDate.Value.AddDays(1);
+                else user.LockoutEnd = endDate;
+
+                await _userManager.UpdateAsync(user);
+            }
+            else throw new ArgumentException($"Id {id} " + ErrorMessage.NOT_FOUND);
         }
 
         public async Task<AddressDTO?> GetUserAddress(string userId)

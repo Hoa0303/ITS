@@ -44,5 +44,57 @@ namespace ITS_BE.Library
             }
             throw new Exception(ErrorMessage.INVALID);
         }
+
+        public string CreateSecureHashQueryDr(VNPayQueryDr queryDr, string vnp_HashSecret)
+        {
+            var json = JsonConvert.SerializeObject(queryDr);
+            var dictionary = JsonConvert.DeserializeObject<IDictionary<string, string>>(json);
+            if (dictionary != null)
+            {
+                var data = dictionary.Where(e => !string.IsNullOrEmpty(e.Value))
+                                     .Select(x => x.Value);
+
+                var dataString = string.Join("|", data);
+
+                var vnp_SecureHash = HmacSHA512(vnp_HashSecret, dataString);
+                return vnp_SecureHash;
+            }
+            throw new Exception(ErrorMessage.INVALID);
+        }
+
+        public bool ValidateQueryDrSignature(VNPayQueryDrResponse response, string vnp_SecureHash, string vnp_HashSecret)
+        {
+            var json = JsonConvert.SerializeObject(response);
+            var dictionary = JsonConvert.DeserializeObject<IDictionary<string, string>>(json);
+            if (dictionary != null)
+            {
+                var data = dictionary.Where(e => e.Key != "vnp_SecureHash")
+                                     .Select(x => x.Value);
+
+                var requestString = string.Join("|", data);
+
+                var hash = HmacSHA512(vnp_HashSecret, requestString);
+                return hash.Equals(vnp_SecureHash, StringComparison.InvariantCultureIgnoreCase);
+            }
+            throw new Exception(ErrorMessage.INVALID);
+        }
+
+        public bool ValidateSignature(VNPayRequest request, string vnp_SecureHash, string vnp_HashSecret)
+        {
+            var json = JsonConvert.SerializeObject(request);
+            var dictionary = JsonConvert.DeserializeObject<IDictionary<string, string>>(json);
+            if (dictionary != null)
+            {
+                var data = dictionary.Where(e => !string.IsNullOrEmpty(e.Value) && e.Key != "vnp_SecureHash")
+                                     .OrderBy(e => e.Key)
+                                     .Select(x => $"{WebUtility.UrlEncode(x.Key)}={WebUtility.UrlEncode(x.Value)}");
+
+                var requestString = string.Join("&", data);
+
+                var hash = HmacSHA512(vnp_HashSecret, requestString);
+                return hash.Equals(vnp_SecureHash, StringComparison.InvariantCultureIgnoreCase);
+            }
+            throw new Exception(ErrorMessage.INVALID);
+        }
     }
 }

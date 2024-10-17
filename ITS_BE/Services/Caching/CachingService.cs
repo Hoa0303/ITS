@@ -22,5 +22,10 @@ namespace ITS_BE.Services.Caching
         {
             _memoryCache.Set(cacheKey, value, TimeSpan.FromHours(6));
         }
+
+        public void Set<T>(string cacheKey, T value, MemoryCacheEntryOptions options)
+        {
+            _memoryCache.Set(cacheKey, value, options);
+        }
     }
 }

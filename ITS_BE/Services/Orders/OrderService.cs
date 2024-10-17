@@ -2,6 +2,7 @@
 using ITS_BE.Constants;
 using ITS_BE.DTO;
 using ITS_BE.Enum;
+using ITS_BE.Library;
 using ITS_BE.Models;
 using ITS_BE.ModelView;
 using ITS_BE.Repository.CartItemRepository;
@@ -10,8 +11,11 @@ using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
+using ITS_BE.Services.Caching;
 using ITS_BE.Services.Payment;
+using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 namespace ITS_BE.Services.Orders
 {
@@ -24,9 +28,16 @@ namespace ITS_BE.Services.Orders
         private readonly IPaymentMethodRepository _paymentMethodRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
         private readonly IPaymentService _paymentService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ICachingService _cachingService;
         private readonly IMapper _mapper;
 
-        public OrderService(IOrderRepository orderRepository, IProductRepository productRepository, IProductColorRepository productColorRepository, ICartItemRepository cartItemRepository, IPaymentMethodRepository paymentMethodRepository, IOrderDetailRepository orderDetailRepository, IPaymentService paymentService, IMapper mapper)
+        public OrderService(IOrderRepository orderRepository,
+            IProductRepository productRepository, IProductColorRepository productColorRepository,
+            ICartItemRepository cartItemRepository, IPaymentMethodRepository paymentMethodRepository,
+            IOrderDetailRepository orderDetailRepository, IPaymentService paymentService,
+            IServiceScopeFactory serviceScopeFactory, ICachingService cachingService,
+            IMapper mapper)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
@@ -35,7 +46,17 @@ namespace ITS_BE.Services.Orders
             _paymentMethodRepository = paymentMethodRepository;
             _orderDetailRepository = orderDetailRepository;
             _paymentService = paymentService;
+            _cachingService = cachingService;
+            _serviceScopeFactory = serviceScopeFactory;
             _mapper = mapper;
+        }
+        struct OrderCache
+        {
+            public string Url { get; set; }
+            public long OrderId { get; set; }
+            public string? vnp_IpAddr { get; set; }
+            public string? vnp_CreateDate { get; set; }
+            public string? vnp_OrderInfo { get; set; }
         }
 
         public async Task<string?> CreateOrder(string userId, OrderRequest request)
@@ -96,6 +117,7 @@ namespace ITS_BE.Services.Orders
                         Quantity = cartItem.Quantity,
                         OriginPrice = color.Prices,
                         Price = price,
+                        ImageUrl = color.ImageUrl,
                     };
                     listOrderDetail.Add(orderDetail);
                 }
@@ -118,6 +140,21 @@ namespace ITS_BE.Services.Orders
                     var IpAddr = "127.0.0.1";
                     var paymentUrl = _paymentService.GetPaymentUrl(orderInfor, IpAddr);
 
+                    var orderCache = new OrderCache()
+                    {
+                        OrderId = order.Id,
+                        Url = paymentUrl,
+                        vnp_CreateDate = order.OrderDate.ToString("yyyyMMddHHmmss"),
+                        vnp_IpAddr = IpAddr,
+                        vnp_OrderInfo = orderInfor.OrderInfor,
+                    };
+
+                    var cacheOpts = new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(15)
+                    };
+                    cacheOpts.RegisterPostEvictionCallback(OnVNPayDeadline, this);
+                    _cachingService.Set("Order " + order.Id, orderCache, cacheOpts);
                     return paymentUrl;
                 }
                 return null;
@@ -128,12 +165,133 @@ namespace ITS_BE.Services.Orders
             }
         }
 
+        public async Task DeleteOrder(long orderId)
+        {
+            var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId);
+            if (order != null)
+            {
+                await _orderRepository.DeleteAsync(order);
+            }
+            else throw new ArgumentException($"Id {orderId} " + ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task<PageRespone<OrderDTO>> GetAllOrder(int page, int pageSize, string? key)
+        {
+            int total;
+            IEnumerable<Order> orders;
+            if (string.IsNullOrEmpty(key))
+            {
+                total = await _orderRepository.CountAsync();
+                orders = await _orderRepository.GetPagedOrderByDescendingAsync(page, pageSize, null, e => e.CreateAt);
+            }
+            else
+            {
+                bool isLong = long.TryParse(key, out long idSearch);
+
+                Expression<Func<Order, bool>> expression =
+                    e => e.Id.Equals(idSearch)
+                    || (!isLong && e.PaymentMethodName != null && e.PaymentMethodName.Contains(key));
+
+                total = await _orderRepository.CountAsync(expression);
+                orders = await _orderRepository.GetPagedOrderByDescendingAsync(page, pageSize, expression, e => e.CreateAt);
+            }
+
+            var item = _mapper.Map<IEnumerable<OrderDTO>>(orders);
+            return new PageRespone<OrderDTO>
+            {
+                Items = item,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = total
+            };
+        }
+
+        private async void OnVNPayDeadline(object key, object? value, EvictionReason reason, object? state)
+        {
+            if (value != null)
+            {
+                using var _scope = _serviceScopeFactory.CreateScope();
+                var orderRepository = _scope.ServiceProvider.GetRequiredService<IOrderRepository>();
+                var vnPayLibary = _scope.ServiceProvider.GetRequiredService<IVNPayLibrary>();
+                var configuration = _scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+                var data = (OrderCache)value;
+                var vnp_QueryDrUrl = configuration["VNPay:vnp_QueryDrUrl"] ?? throw new Exception(ErrorMessage.NOT_FOUND);
+                var vnp_HashSecret = configuration["VNPay:vnp_HashSecret"] ?? throw new Exception(ErrorMessage.NOT_FOUND);
+                var vnp_TmnCode = configuration["VNPay:vnp_TmnCode"] ?? throw new Exception(ErrorMessage.NOT_FOUND);
+
+                var queryDr = new VNPayQueryDr
+                {
+                    vnp_Command = "querydr",
+                    vnp_RequestId = data.OrderId.ToString(),
+                    vnp_Version = "2.1.0",
+                    vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss"),
+                    vnp_TransactionDate = data.vnp_CreateDate,
+                    vnp_IpAddr = data.vnp_IpAddr,
+                    vnp_OrderInfo = data.vnp_OrderInfo,
+                    vnp_TmnCode = vnp_TmnCode,
+                    vnp_TxnRef = data.OrderId.ToString(),
+
+                };
+                var checksum = vnPayLibary.CreateSecureHashQueryDr(queryDr, vnp_HashSecret);
+
+                var queryDrWithHash = new
+                {
+                    queryDr.vnp_Command,
+                    queryDr.vnp_RequestId,
+                    queryDr.vnp_Version,
+                    queryDr.vnp_CreateDate,
+                    queryDr.vnp_TransactionDate,
+                    queryDr.vnp_IpAddr,
+                    queryDr.vnp_OrderInfo,
+                    queryDr.vnp_TmnCode,
+                    queryDr.vnp_TxnRef,
+                    vnPayLibary = checksum
+                };
+
+                using var httpClient = new HttpClient();
+
+                var res = await httpClient.PostAsJsonAsync(vnp_QueryDrUrl, queryDrWithHash);
+                VNPayQueryDrResponse? queryDrResponse = await res.Content.ReadFromJsonAsync<VNPayQueryDrResponse?>();
+
+                if (queryDrResponse != null)
+                {
+                    bool checkSingature = vnPayLibary.ValidateQueryDrSignature(queryDrResponse, queryDrResponse.vnp_SecureHash, vnp_HashSecret);
+                    if (checkSingature && queryDrResponse.vnp_ResponseCode == "00")
+                    {
+                        var order = await orderRepository.FindAsync(data.OrderId);
+                        if (order != null)
+                        {
+                            long vnp_Amount = Convert.ToInt64(queryDrResponse.vnp_Amount) / 100;
+
+                            if (queryDrResponse.vnp_TransactionStatus == "00" && vnp_Amount == order.Total)
+                            {
+                                order.PaymentTranId = queryDrResponse.vnp_TransactionNo;
+                                order.AmountPaid = vnp_Amount;
+                                order.OrderStatus = DeliveryStatusEnum.Confirmed;
+                            }
+                            else
+                            {
+                                order.OrderStatus = DeliveryStatusEnum.Canceled;
+                            }
+                            await orderRepository.UpdateAsync(order);
+                        }
+                    }
+                }
+            }
+        }
+
         public async Task<PageRespone<OrderDTO>> GetOrderByUserId(string userId, PageResquest resquest)
         {
             var orders = await _orderRepository.GetPagedOrderByDescendingAsync(resquest.page, resquest.pageSize, e => e.UserId == userId, x => x.CreateAt);
             var total = await _orderRepository.CountAsync(e => e.UserId == userId);
 
-            var items = _mapper.Map<IEnumerable<OrderDTO>>(orders);
+            var items = _mapper.Map<IEnumerable<OrderDTO>>(orders).Select(x =>
+            {
+                x.PayBackUrl = _cachingService.Get<OrderCache?>("Order " + x.Id)?.Url;
+                return x;
+            });
+
             return new PageRespone<OrderDTO>
             {
                 Items = items,
@@ -141,6 +299,78 @@ namespace ITS_BE.Services.Orders
                 Page = resquest.page,
                 PageSize = resquest.pageSize,
             };
+        }
+
+        public async Task<OrderDetailResponse> GetOrderDetail(long orderId, string userId)
+        {
+            var order = await _orderRepository.SingleOrDefaultAsyncInclue(e => e.Id == orderId && e.UserId == userId);
+            if (order != null)
+            {
+                return _mapper.Map<OrderDetailResponse>(order);
+            }
+            else throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task<OrderDetailResponse> GetOrderDetail(long orderId)
+        {
+            var order = await _orderRepository.SingleOrDefaultAsyncInclue(e => e.Id == orderId);
+            if (order != null)
+            {
+                return _mapper.Map<OrderDetailResponse>(order);
+            }
+            else throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task CancelOrder(long orderId, string userId)
+        {
+            var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId && e.UserId == userId);
+            if (order != null)
+            {
+                if (order.OrderStatus.Equals(DeliveryStatusEnum.Proccessing)
+                    || order.OrderStatus.Equals(DeliveryStatusEnum.Confirmed))
+                {
+                    order.OrderStatus = DeliveryStatusEnum.Canceled;
+
+                    _cachingService.Remove("Order " + orderId);
+                    await _orderRepository.UpdateAsync(order);
+                }
+                else throw new Exception(ErrorMessage.ERROR);
+            }
+            else throw new ArgumentException($"Id {orderId} " + ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task UpdateStatusOrder(long orderId, OrderStatusResquest resquest)
+        {
+            var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId);
+            if (order != null)
+            {
+                if (!order.OrderStatus.Equals(DeliveryStatusEnum.Canceled)
+                    || !order.OrderStatus.Equals(DeliveryStatusEnum.Done))
+                {
+                    order.OrderStatus = resquest.Status;
+                    await _orderRepository.UpdateAsync(order);
+                }
+                else throw new Exception(ErrorMessage.ERROR);
+            }
+            else throw new ArgumentException($"Id {orderId} " + ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task CancelOrder(long orderId)
+        {
+            var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId);
+            if (order != null)
+            {
+                if (order.OrderStatus.Equals(DeliveryStatusEnum.Proccessing)
+                    || order.OrderStatus.Equals(DeliveryStatusEnum.Confirmed))
+                {
+                    order.OrderStatus = DeliveryStatusEnum.Canceled;
+
+                    _cachingService.Remove("Order " + orderId);
+                    await _orderRepository.UpdateAsync(order);
+                }
+                else throw new Exception(ErrorMessage.ERROR);
+            }
+            else throw new ArgumentException($"Id {orderId} " + ErrorMessage.NOT_FOUND);
         }
     }
 }

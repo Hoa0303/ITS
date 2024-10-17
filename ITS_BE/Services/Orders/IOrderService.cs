@@ -7,6 +7,15 @@ namespace ITS_BE.Services.Orders
     public interface IOrderService
     {
         Task<string?> CreateOrder(string userId, OrderRequest request);
+        Task CancelOrder(long orderId, string userId);
         Task<PageRespone<OrderDTO>> GetOrderByUserId(string userId, PageResquest resquest);
+        Task<OrderDetailResponse> GetOrderDetail(long orderId, string userId);
+
+        //Admin
+        Task<PageRespone<OrderDTO>> GetAllOrder(int page, int pageSize, string? key);
+        Task<OrderDetailResponse> GetOrderDetail(long orderId);
+        Task UpdateStatusOrder(long orderId, OrderStatusResquest resquest);
+        Task CancelOrder(long orderId);
+        Task DeleteOrder(long orderId);
     }
 }

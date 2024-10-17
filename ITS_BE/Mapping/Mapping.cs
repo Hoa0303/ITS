@@ -58,6 +58,10 @@ namespace ITS_BE.Mapping
 
             CreateMap<OrderDTO, Order>().ReverseMap()
                 .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethodName));
+
+            CreateMap<OrderDetail, ProductOrderDetails>();
+            CreateMap<Order, OrderDetailResponse>()
+                .ForMember(dest => dest.ProductOrderDetails, opt => opt.MapFrom(src => src.OrderDetials));
         }
     }
 }

@@ -13,4 +13,15 @@ namespace ITS_BE.DTO
 
         public string? PayBackUrl { get; set; }
     }
+
+    public class ProductOrderDetails
+    {
+        public int? ProductId { get; set; }
+        public string ProductName { get; set; }
+        public string ColorName { get; set; }
+        public double OriginPrice { get; set; }
+        public double Price { get; set; }
+        public int Quantity { get; set; }
+        public string? ImageUrl { get; set; }
+    }
 }

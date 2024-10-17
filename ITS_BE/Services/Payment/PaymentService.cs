@@ -1,22 +1,31 @@
 ﻿using AutoMapper;
+using ITS_BE.Constants;
 using ITS_BE.DTO;
+using ITS_BE.Enum;
 using ITS_BE.Library;
 using ITS_BE.ModelView;
 using ITS_BE.Repository.OrderRepository;
+using ITS_BE.Services.Caching;
 
 namespace ITS_BE.Services.Payment
 {
     public class PaymentService : IPaymentService
     {
         private readonly IPaymentMethodRepository _paymentmethodRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly IConfiguration _configuration;
         private readonly IVNPayLibrary _vnPayLibrary;
+        private readonly ICachingService _cachingService;
         private readonly IMapper _mapper;
 
-        public PaymentService(IPaymentMethodRepository paymentmethodRepository, IConfiguration configuration, IVNPayLibrary vnPayLibrary, IMapper mapper)
+        public PaymentService(IPaymentMethodRepository paymentmethodRepository, IConfiguration configuration,
+            IVNPayLibrary vnPayLibrary, IMapper mapper, ICachingService cachingService,
+            IOrderRepository orderRepository)
         {
             _paymentmethodRepository = paymentmethodRepository;
+            _orderRepository = orderRepository;
             _configuration = configuration;
+            _cachingService = cachingService;
             _vnPayLibrary = vnPayLibrary;
             _mapper = mapper;
         }
@@ -53,7 +62,7 @@ namespace ITS_BE.Services.Payment
                 vnp_OrderInfo = order.OrderInfor,
                 vnp_ReturnUrl = vnp_ReturnUrl,
                 vnp_TmnCode = vnp_TmnCode,
-                
+
                 vnp_TxnRef = order.OrderId.ToString(),
                 vnp_Version = "2.1.0"
             };
@@ -65,6 +74,41 @@ namespace ITS_BE.Services.Payment
         {
             var res = await _paymentmethodRepository.SingleOrDefaultAsync(x => x.Id == id && x.IsActive);
             return res?.Name;
+        }
+
+        public async Task VNPayCallback(VNPayRequest request)
+        {
+            string vnp_HashSecret = _configuration["VNpay:vnp_HashSecret"] ?? "";
+
+            long orderId = Convert.ToInt32(request.vnp_TxnRef);
+            long vnp_Amount = Convert.ToInt64(request.vnp_Amount) / 100;
+
+            string vnp_ResponseCode = request.vnp_ResponseCode;
+            string vnp_TransactionStatus = request.vnp_TransactionStatus;
+
+            string vnp_SecureHash = request.vnp_SecureHash;
+
+            bool checkSignature = _vnPayLibrary.ValidateSignature(request, vnp_SecureHash, vnp_HashSecret);
+            if (checkSignature)
+            {
+                var order = await _orderRepository.FindAsync(orderId)
+                    ?? throw new ArgumentException($"Order {orderId}" + ErrorMessage.NOT_FOUND);
+
+                if (order.Total == vnp_Amount)
+                {
+                    if (vnp_ResponseCode == "00" && vnp_TransactionStatus == "00")
+                    {
+                        order.PaymentTranId = request.vnp_TransactionNo;
+                        order.AmountPaid = vnp_Amount;
+                        order.OrderStatus = DeliveryStatusEnum.Confirmed;
+
+                        await _orderRepository.UpdateAsync(order);
+                        _cachingService.Remove("Order " + orderId);
+                    }
+                }
+                else throw new Exception(ErrorMessage.PAYMENT_FAILED);
+            }
+            else throw new ArgumentException("Số tiền " + ErrorMessage.INVALID);
         }
     }
 }

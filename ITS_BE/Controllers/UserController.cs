@@ -1,6 +1,7 @@
 ﻿using ITS_BE.DTO;
 using ITS_BE.Request;
 using ITS_BE.Services.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -16,7 +17,7 @@ namespace ITS_BE.Controllers
             _userService = userService;
         }
         [HttpGet]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllUser([FromQuery] PageResquest resquest)
         {
             try
@@ -28,6 +29,24 @@ namespace ITS_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+
+        [HttpPut("lock-out/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> LockOut(string id, [FromBody] InActiveUser request)
+        {
+            try
+            {
+                await _userService.LockOut(id, request.EndDate);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
         [HttpGet("address")]
         public async Task<IActionResult> GetAddress()
         {
@@ -50,6 +69,7 @@ namespace ITS_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
 
         [HttpPut("address")]
         public async Task<IActionResult> UpdateAddress([FromBody] AddressDTO address)
