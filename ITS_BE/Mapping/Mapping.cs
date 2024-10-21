@@ -12,6 +12,7 @@ namespace ITS_BE.Mapping
         {
             CreateMap<User, UserDTO>().ReverseMap();
             CreateMap<User, UserResponse>().ReverseMap();
+            CreateMap<User, UserInfoRequest>().ReverseMap();
             CreateMap<DeliveryAddress, AddressDTO>().ReverseMap();
 
             CreateMap<Brand, BrandDTO>().ReverseMap();
@@ -62,6 +63,8 @@ namespace ITS_BE.Mapping
             CreateMap<OrderDetail, ProductOrderDetails>();
             CreateMap<Order, OrderDetailResponse>()
                 .ForMember(dest => dest.ProductOrderDetails, opt => opt.MapFrom(src => src.OrderDetials));
+
+            CreateMap<Receipt, ReceiptDTO>().ReverseMap();
         }
     }
 }

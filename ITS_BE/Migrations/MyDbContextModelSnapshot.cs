@@ -173,6 +173,27 @@ namespace ITS_BE.Migrations
                     b.ToTable("DeliveryAddresses");
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.Favorite", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("UserId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Favorites");
+                });
+
             modelBuilder.Entity("ITS_BE.Models.Image", b =>
                 {
                     b.Property<int>("Id")
@@ -219,6 +240,12 @@ namespace ITS_BE.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("DistrictId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("Expected_delivery_time")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp without time zone");
 
@@ -235,8 +262,15 @@ namespace ITS_BE.Migrations
                     b.Property<string>("PaymentTranId")
                         .HasColumnType("text");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Receiver")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShippingCode")
                         .HasColumnType("text");
 
                     b.Property<double>("Total")
@@ -246,6 +280,10 @@ namespace ITS_BE.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WardCode")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -350,6 +388,9 @@ namespace ITS_BE.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Sold")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdateAt")
                         .HasColumnType("timestamp without time zone");
@@ -471,6 +512,70 @@ namespace ITS_BE.Migrations
                         .IsUnique();
 
                     b.ToTable("Product_Details");
+                });
+
+            modelBuilder.Entity("ITS_BE.Models.Receipt", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
+                    b.Property<double>("Total")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Receipts");
+                });
+
+            modelBuilder.Entity("ITS_BE.Models.ReceiptDetail", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ColorId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("CostPrice")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ReceiptId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColorId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ReceiptId");
+
+                    b.ToTable("ReceiptDetails");
                 });
 
             modelBuilder.Entity("ITS_BE.Models.User", b =>
@@ -709,6 +814,25 @@ namespace ITS_BE.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.Favorite", b =>
+                {
+                    b.HasOne("ITS_BE.Models.Product", "Product")
+                        .WithMany("Favorites")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ITS_BE.Models.User", "User")
+                        .WithMany("Favorites")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ITS_BE.Models.Image", b =>
                 {
                     b.HasOne("ITS_BE.Models.Product", "Product")
@@ -727,7 +851,7 @@ namespace ITS_BE.Migrations
                         .HasForeignKey("PaymentMethodId");
 
                     b.HasOne("ITS_BE.Models.User", "User")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("UserId");
 
                     b.Navigation("PaymentMethod");
@@ -744,7 +868,7 @@ namespace ITS_BE.Migrations
                         .IsRequired();
 
                     b.HasOne("ITS_BE.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("OrderDetails")
                         .HasForeignKey("ProductId");
 
                     b.Navigation("Order");
@@ -801,6 +925,42 @@ namespace ITS_BE.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.Receipt", b =>
+                {
+                    b.HasOne("ITS_BE.Models.User", "User")
+                        .WithMany("Receipts")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ITS_BE.Models.ReceiptDetail", b =>
+                {
+                    b.HasOne("ITS_BE.Models.Color", "Color")
+                        .WithMany("ReceiptDetails")
+                        .HasForeignKey("ColorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ITS_BE.Models.Product", "Product")
+                        .WithMany("ReceiptDetails")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ITS_BE.Models.Receipt", "Receipt")
+                        .WithMany("ReceiptDetails")
+                        .HasForeignKey("ReceiptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Color");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Receipt");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -855,6 +1015,8 @@ namespace ITS_BE.Migrations
             modelBuilder.Entity("ITS_BE.Models.Color", b =>
                 {
                     b.Navigation("Product_Colors");
+
+                    b.Navigation("ReceiptDetails");
                 });
 
             modelBuilder.Entity("ITS_BE.Models.Order", b =>
@@ -871,14 +1033,31 @@ namespace ITS_BE.Migrations
                 {
                     b.Navigation("Details");
 
+                    b.Navigation("Favorites");
+
                     b.Navigation("Images");
 
+                    b.Navigation("OrderDetails");
+
                     b.Navigation("Product_Colors");
+
+                    b.Navigation("ReceiptDetails");
+                });
+
+            modelBuilder.Entity("ITS_BE.Models.Receipt", b =>
+                {
+                    b.Navigation("ReceiptDetails");
                 });
 
             modelBuilder.Entity("ITS_BE.Models.User", b =>
                 {
                     b.Navigation("DeliveryAddress");
+
+                    b.Navigation("Favorites");
+
+                    b.Navigation("Orders");
+
+                    b.Navigation("Receipts");
                 });
 #pragma warning restore 612, 618
         }

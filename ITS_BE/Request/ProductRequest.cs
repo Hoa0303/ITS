@@ -33,6 +33,7 @@
         public int BrandId { get; set; }
         public int CategoryId { get; set; }
         public bool Enable { get; set; } = true;
+        public int Sold { get; set; } = 0;
         public IEnumerable<ImageColor> Color { get; set; }
         public Details Details { get; set; }
         public IEnumerable<string> ImageUrls { get; set; } = new List<string>();

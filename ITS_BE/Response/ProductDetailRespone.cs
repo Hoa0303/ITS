@@ -1,6 +1,4 @@
-﻿using ITS_BE.Migrations;
-
-namespace ITS_BE.Response
+﻿namespace ITS_BE.Response
 {
     public class ColorResponse
     {

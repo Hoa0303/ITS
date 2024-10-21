@@ -2,9 +2,16 @@
 using ITS_BE.Constants;
 using ITS_BE.DTO;
 using ITS_BE.Models;
+using ITS_BE.Repository.FavoriteRepository;
+using ITS_BE.Repository.ImageRepository;
+using ITS_BE.Repository.ProductColorRepository;
+using ITS_BE.Repository.ProductDetailRepository;
+using ITS_BE.Repository.ProductRepository;
 using ITS_BE.Repository.UserRepository;
+using ITS_BE.Request;
 using ITS_BE.Response;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Linq.Expressions;
 
 namespace ITS_BE.Services.Users
@@ -13,15 +20,29 @@ namespace ITS_BE.Services.Users
     {
         private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
+        private readonly IFavoriterRepository _favoriterRepository;
+        private readonly IProductRepository _productRepository;
+        private readonly IProductColorRepository _productColorRepository;
+        private readonly IProductDetailRepository _productDetailRepository;
+        private readonly IImageRepository _imageRepository;
         private readonly IDeliveryAddressRepository _deliveryAddressRepository;
         private readonly IMapper _mapper;
 
-        public UserService(UserManager<User> userManager, IUserRepository userRepository, IDeliveryAddressRepository deliveryAddressRepository, IMapper mapper)
+        public UserService(UserManager<User> userManager, IUserRepository userRepository,
+            IDeliveryAddressRepository deliveryAddressRepository,
+            IMapper mapper, IFavoriterRepository favoriterRepository,
+            IProductRepository productRepository, IProductColorRepository productColorRepository,
+            IProductDetailRepository productDetailRepository, IImageRepository imageRepository)
         {
             _userManager = userManager;
             _userRepository = userRepository;
+            _productRepository = productRepository;
+            _productColorRepository = productColorRepository;
             _deliveryAddressRepository = deliveryAddressRepository;
+            _favoriterRepository = favoriterRepository;
             _mapper = mapper;
+            _productDetailRepository = productDetailRepository;
+            _imageRepository = imageRepository;
         }
 
         public async Task<PageRespone<UserResponse>> GetAllAsync(int page, int pageSize, string? key)
@@ -105,6 +126,110 @@ namespace ITS_BE.Services.Users
 
             await _deliveryAddressRepository.UpdateAsync(delivery);
             return _mapper.Map<AddressDTO?>(delivery);
+        }
+
+        private string MaskEmail(string email)
+        {
+            var emailParts = email.Split('@');
+            if (emailParts.Length != 2)
+            {
+                throw new ArgumentException("Email không hợp lệ");
+            }
+
+            string name = emailParts[0];
+            string domain = emailParts[1];
+
+            int visibleChars = name.Length < 5 ? 2 : 5;
+            string maskedName = name[..visibleChars].PadRight(name.Length, '*');
+
+            return $"{maskedName}@{domain}";
+        }
+
+        public async Task<UserDTO> GetUserInfo(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                var res = _mapper.Map<UserDTO>(user);
+                res.Email = res.Email != null ? MaskEmail(res.Email) : "";
+                return res;
+            }
+            throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task<UserInfoRequest> UpdateUserInfo(string userId, UserInfoRequest request)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                user.FullName = request.FullName;
+                user.PhoneNumber = request.PhoneNumber;
+                await _userManager.UpdateAsync(user);
+
+                return _mapper.Map<UserInfoRequest>(user);
+            }
+            throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task AddFavorite(string userId, int productId)
+        {
+            var favorite = new Favorite
+            {
+                UserId = userId,
+                ProductId = productId
+            };
+            await _favoriterRepository.AddAsync(favorite);
+        }
+
+        public async Task<IEnumerable<int>> GetFavorites(string userId)
+        {
+            var favorite = await _favoriterRepository.GetAsync(e => e.UserId == userId);
+            return favorite.Select(e => e.ProductId);
+        }
+
+        public async Task DeleteFavorite(string userId, int productId)
+            => await _favoriterRepository.DeleteAsync(userId, productId);
+
+        public async Task<PageRespone<ProductDTO>> GetProductFavorites(string userId, PageResquest request)
+        {
+            var favorites = await _favoriterRepository
+                .GetPagedAsync(request.page, request.pageSize, e => e.UserId == userId, e => e.CreateAt);
+
+            var total = await _favoriterRepository.CountAsync(e => e.UserId == userId);
+            var productIds = favorites.Select(e => e.ProductId).ToList();
+
+            var products = await _productRepository.GetListAsync(p => productIds.Contains(p.Id));
+
+            var items = _mapper.Map<IEnumerable<ProductDTO>>(products).Select(x =>
+            {
+                var image = products.Single(e => e.Id == x.Id).Images.First();
+                if (image != null)
+                {
+                    x.ImageUrl = image.ImageUrl;
+                }
+                var color = products.Single(e => e.Id == x.Id).Product_Colors.First();
+                if (color != null)
+                {
+                    x.Price = color.Prices;
+                    x.ColorId = color.ColorId;
+                }
+                var detail = products.Single(e => e.Id == x.Id).Details;
+                if (detail != null)
+                {
+                    x.SizeScreen = detail.SizeScreen;
+                    x.Cpu = detail.Cpu;
+                    x.Ram = detail.Ram;
+                    x.Rom = detail.Rom;
+                }
+                return x;
+            });
+            return new PageRespone<ProductDTO>
+            {
+                Items = items,
+                Page = request.page,
+                PageSize = request.pageSize,
+                TotalItems = total
+            };
         }
     }
 }

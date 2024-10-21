@@ -75,5 +75,15 @@ namespace ITS_BE.Repository.ProductRepository
                 .ToListAsync();
         }
 
+        public async Task<List<Product>> GetListAsync(Expression<Func<Product, bool>> predicate)
+        {
+            return await _context.Products
+                .Include(e => e.Brand)
+                .Include(e => e.Category)
+                .Include(e => e.Details)
+                .Include(e => e.Product_Colors)
+                .Where(predicate).ToListAsync();
+        }
+
     }
 }

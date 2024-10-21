@@ -88,11 +88,31 @@ namespace ITS_BE.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus(long id, OrderStatusResquest resquest)
+        public async Task<IActionResult> UpdateStatus(long id)
         {
             try
             {
-                await _orderService.UpdateStatusOrder(id, resquest);
+                await _orderService.UpdateStatusOrder(id);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpPut("shipping/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ShippingOrder(long id, OrderShippingRequest request)
+        {
+            try
+            {
+                await _orderService.ShippingOrder(id, request);
                 return NoContent();
             }
             catch (ArgumentException ex)

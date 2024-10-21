@@ -8,5 +8,9 @@ namespace ITS_BE.Models
         public DeliveryAddress? DeliveryAddress { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
+
+        public ICollection<Order> Orders { get; } = new HashSet<Order>();
+        public ICollection<Receipt> Receipts { get; } = new HashSet<Receipt>();
+        public ICollection<Favorite> Favorites { get; } = new HashSet<Favorite>();
     }
 }

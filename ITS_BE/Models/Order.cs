@@ -10,8 +10,12 @@ namespace ITS_BE.Models
         public DateTime OrderDate { get; set; }
 
         public string DeliveryAddress { get; set; }
-        public string Receiver { get; set; }
+        public int DistrictId { get; set; } //for GHN
+        public string WardCode { get; set; } //for GHN
 
+        public string Receiver { get; set; }
+        public string PhoneNumber { get; set; }
+        
         public double AmountPaid { get; set; }
         public string? PaymentTranId { get; set; }
 
@@ -21,6 +25,9 @@ namespace ITS_BE.Models
         public int? PaymentMethodId { get; set; }
         public string PaymentMethodName { get; set; }
         public PaymentMethod? PaymentMethod { get; set; }
+
+        public string? ShippingCode { get; set; }
+        public DateTime? Expected_delivery_time { get; set; }
 
         public DeliveryStatusEnum? OrderStatus { get; set; } = DeliveryStatusEnum.Proccessing;
 

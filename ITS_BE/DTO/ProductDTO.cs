@@ -3,9 +3,11 @@
     public class ProductDTO
     {
         public int Id { get; set; }
+        public int ColorId { get; set; } // Alert
         public string Name { get; set; }
         public int Discount { get; set; }
         public bool Enable { get; set; }
+        public int Sold { get; set; }
         public double Price { get; set; }
         public string CategoryName { get; set; }
         public string BrandName { get; set; }

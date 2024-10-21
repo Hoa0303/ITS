@@ -6,11 +6,13 @@ using ITS_BE.Repository.BrandRepository;
 using ITS_BE.Repository.CartItemRepository;
 using ITS_BE.Repository.CategoryRepository;
 using ITS_BE.Repository.ColorRespository;
+using ITS_BE.Repository.FavoriteRepository;
 using ITS_BE.Repository.ImageRepository;
 using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductDetailRepository;
 using ITS_BE.Repository.ProductRepository;
+using ITS_BE.Repository.ReceiptRepository;
 using ITS_BE.Repository.UserRepository;
 using ITS_BE.Services.AuthSevices;
 using ITS_BE.Services.Brands;
@@ -21,6 +23,7 @@ using ITS_BE.Services.Colors;
 using ITS_BE.Services.Orders;
 using ITS_BE.Services.Payment;
 using ITS_BE.Services.Products;
+using ITS_BE.Services.Receipts;
 using ITS_BE.Services.SendEmail;
 using ITS_BE.Services.Users;
 using ITS_BE.Storage;
@@ -123,6 +126,7 @@ builder.Services.AddScoped<IColorService, ColorService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
 
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -134,10 +138,13 @@ builder.Services.AddScoped<ICateroryRepository, CaterogyRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IFavoriterRepository, FavoriterRepository>();
 builder.Services.AddScoped<IColorRepository, ColorRepository>();
 builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
+builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
+builder.Services.AddScoped<IReceiptDetailRepository, ReceiptDetailRepository>();
 
 builder.Services.AddScoped<IVNPayLibrary, VNPayLibrary>();
 

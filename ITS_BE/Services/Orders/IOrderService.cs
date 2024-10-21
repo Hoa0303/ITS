@@ -14,7 +14,8 @@ namespace ITS_BE.Services.Orders
         //Admin
         Task<PageRespone<OrderDTO>> GetAllOrder(int page, int pageSize, string? key);
         Task<OrderDetailResponse> GetOrderDetail(long orderId);
-        Task UpdateStatusOrder(long orderId, OrderStatusResquest resquest);
+        Task UpdateStatusOrder(long orderId);
+        Task ShippingOrder(long orderId, OrderShippingRequest request);
         Task CancelOrder(long orderId);
         Task DeleteOrder(long orderId);
     }

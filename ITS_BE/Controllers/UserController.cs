@@ -47,6 +47,58 @@ namespace ITS_BE.Controllers
         }
 
 
+        [HttpGet("infor")]
+        public async Task<IActionResult> GetInforUser()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var res = await _userService.GetUserInfo(userId);
+                return Ok(res);
+            }
+            catch (AggregateException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpPut("infor")]
+        public async Task<IActionResult> UpdateInfo([FromBody] UserInfoRequest request)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var res = await _userService.UpdateUserInfo(userId, request);
+                return Ok(res);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
         [HttpGet("address")]
         public async Task<IActionResult> GetAddress()
         {
@@ -83,6 +135,86 @@ namespace ITS_BE.Controllers
                 }
                 var res = await _userService.UpdateOrAddUserAddress(userId, address);
                 return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpPost("favorite")]
+        public async Task<IActionResult> AddFavorite([FromBody] IdRequest<int> request)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                await _userService.AddFavorite(userId, request.Id);
+                return Created();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("favorite")]
+        public async Task<IActionResult> GetFavorite()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var favorites = await _userService.GetFavorites(userId);
+                return Ok(favorites);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("favorite/products")]
+        public async Task<IActionResult> ProductFavorite([FromQuery] PageResquest resquest)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var products = await _userService.GetProductFavorites(userId, resquest);
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpDelete("favorite/{id}")]
+        public async Task<IActionResult> DeleteFavorite(int id)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                await _userService.DeleteFavorite(userId, id);
+                return NoContent();
             }
             catch (Exception ex)
             {

@@ -27,6 +27,7 @@ namespace ITS_BE.Services.Orders
         private readonly ICartItemRepository _cartItemRepository;
         private readonly IPaymentMethodRepository _paymentMethodRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IConfiguration _configuration;
         private readonly IPaymentService _paymentService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ICachingService _cachingService;
@@ -37,7 +38,7 @@ namespace ITS_BE.Services.Orders
             ICartItemRepository cartItemRepository, IPaymentMethodRepository paymentMethodRepository,
             IOrderDetailRepository orderDetailRepository, IPaymentService paymentService,
             IServiceScopeFactory serviceScopeFactory, ICachingService cachingService,
-            IMapper mapper)
+            IConfiguration configuration, IMapper mapper)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
@@ -45,6 +46,7 @@ namespace ITS_BE.Services.Orders
             _cartItemRepository = cartItemRepository;
             _paymentMethodRepository = paymentMethodRepository;
             _orderDetailRepository = orderDetailRepository;
+            _configuration = configuration;
             _paymentService = paymentService;
             _cachingService = cachingService;
             _serviceScopeFactory = serviceScopeFactory;
@@ -68,6 +70,9 @@ namespace ITS_BE.Services.Orders
                 {
                     UserId = userId,
                     DeliveryAddress = request.DeliveryAddress,
+                    DistrictId = request.DistrictId,
+                    WardCode = request.WardCode,
+                    PhoneNumber = request.PhoneNumber,
                     OrderDate = now,
                     Receiver = request.Receiver,
                     Total = request.Total
@@ -101,7 +106,7 @@ namespace ITS_BE.Services.Orders
                     price *= cartItem.Quantity;
                     total += price;
 
-                    //cartItem.Product.Sold += cartItem.Quantity;
+                    cartItem.Product.Sold += cartItem.Quantity;
                     listProductUpdate.Add(cartItem.Product);
 
                     color.Quantity -= cartItem.Quantity;
@@ -330,6 +335,7 @@ namespace ITS_BE.Services.Orders
                     || order.OrderStatus.Equals(DeliveryStatusEnum.Confirmed))
                 {
                     order.OrderStatus = DeliveryStatusEnum.Canceled;
+                    
 
                     _cachingService.Remove("Order " + orderId);
                     await _orderRepository.UpdateAsync(order);
@@ -339,7 +345,7 @@ namespace ITS_BE.Services.Orders
             else throw new ArgumentException($"Id {orderId} " + ErrorMessage.NOT_FOUND);
         }
 
-        public async Task UpdateStatusOrder(long orderId, OrderStatusResquest resquest)
+        public async Task UpdateStatusOrder(long orderId)
         {
             var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId);
             if (order != null)
@@ -347,7 +353,7 @@ namespace ITS_BE.Services.Orders
                 if (!order.OrderStatus.Equals(DeliveryStatusEnum.Canceled)
                     || !order.OrderStatus.Equals(DeliveryStatusEnum.Done))
                 {
-                    order.OrderStatus = resquest.Status;
+                    order.OrderStatus += 1;
                     await _orderRepository.UpdateAsync(order);
                 }
                 else throw new Exception(ErrorMessage.ERROR);
@@ -371,6 +377,75 @@ namespace ITS_BE.Services.Orders
                 else throw new Exception(ErrorMessage.ERROR);
             }
             else throw new ArgumentException($"Id {orderId} " + ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task ShippingOrder(long orderId, OrderShippingRequest request)
+        {
+            var order = await _orderRepository.SingleOrDefaultAsyncInclue(e => e.Id == orderId)
+                ?? throw new Exception(ErrorMessage.NOT_FOUND);
+
+            var token = _configuration["GHN:Token"];
+            var shop_id = _configuration["GHN:ShopId"];
+            var url = _configuration["GHN:Url"] + "/create";
+
+            if (token == null || shop_id == null || url == null)
+            {
+                throw new Exception(ErrorMessage.INVALID);
+            }
+            string to_name = order.Receiver;
+            string to_phone = order.PhoneNumber;
+            string to_address = order.DeliveryAddress;
+            string to_ward_code = order.WardCode;
+            int to_district_id = order.DistrictId;
+            int weight = request.Weight;
+            int height = request.Height;
+            int length = request.length;
+            int width = request.Width;
+            string required_note = request.DeliveryRequestEnum.ToString();
+
+            double cod_amount = order.AmountPaid < order.Total ? order.Total : 0;
+
+            var Items = order.OrderDetials.Select(d => new
+            {
+                name = d.ProductName,
+                quantity = d.Quantity,
+                price = d.Price,
+            }).ToArray();
+
+            var data = new
+            {
+                to_name,
+                to_phone,
+                to_address,
+                to_ward_code,
+                to_district_id,
+                weight,
+                height,
+                length,
+                width,
+                required_note,
+                service_type_id = 2,
+                payment_type_id = 1,
+                note = "Hàng dễ vỡ xin nhẹ tay",
+                Items
+            };
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("ShopId", shop_id);
+            httpClient.DefaultRequestHeaders.Add("Token", token);
+
+            var res = await httpClient.PostAsJsonAsync(url, data);
+            var dataRes = await res.Content.ReadFromJsonAsync<GHNResponse>();
+
+            if (!res.IsSuccessStatusCode)
+            {
+                throw new Exception(dataRes?.Message ?? ErrorMessage.INVALID);
+            }
+
+            order.ShippingCode = dataRes?.Data?.OrderCode;
+            order.Expected_delivery_time = dataRes?.Data?.Expected_delivery_time;
+            order.OrderStatus = DeliveryStatusEnum.Shipping;
+            await _orderRepository.UpdateAsync(order);
         }
     }
 }

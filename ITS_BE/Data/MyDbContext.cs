@@ -13,6 +13,7 @@ namespace ITS_BE.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Brand> Brands { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Favorite> Favorites { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<Color> Colors { get; set; }
         public DbSet<Product_Color> Product_Colors { get; set; }
@@ -21,6 +22,8 @@ namespace ITS_BE.Data
         public DbSet<DeliveryAddress> DeliveryAddresses { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetials { get; set; }
+        public DbSet<Receipt> Receipts { get; set; }
+        public DbSet<ReceiptDetail> ReceiptDetails { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         private void UpdateTimestamps()
         {
