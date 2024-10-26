@@ -77,6 +77,35 @@ namespace ITS_BE.Controllers
             }
         }
 
+        [HttpGet("color/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetColorById(int id)
+        {
+            try
+            {
+                var res = await _productService.GetColorById(id);
+                return Ok(res);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [HttpGet("name")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Name()
+        {
+            try
+            {
+                var res = await _productService.GetNameProduct();
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         [HttpPost("")]
         [Authorize(Roles = "Admin")]
@@ -155,5 +184,19 @@ namespace ITS_BE.Controllers
             }
         }
 
+
+        [HttpGet("review/{id}")]
+        public async Task<IActionResult> GetReview(int id, [FromQuery] PageResquest resquest)
+        {
+            try
+            {
+                var res = await _productService.GetReview(id, resquest);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

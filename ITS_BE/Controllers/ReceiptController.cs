@@ -20,7 +20,7 @@ namespace ITS_BE.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if(userId == null)
+                if (userId == null)
                 {
                     return Unauthorized();
                 }
@@ -35,7 +35,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpGet]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll([FromQuery] PageResquest request)
         {
             try
@@ -48,6 +48,19 @@ namespace ITS_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-    
+
+        [HttpGet("{id}")]
+        [Authorize(Roles ="Admin")]
+        public async Task<IActionResult> GetById(long id)
+        {
+            try
+            {
+                var res = await _receiptService.GetbyId(id);
+                return Ok(res);
+            }catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

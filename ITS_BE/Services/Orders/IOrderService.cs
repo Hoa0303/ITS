@@ -1,4 +1,5 @@
 ﻿using ITS_BE.DTO;
+using ITS_BE.Models;
 using ITS_BE.Request;
 using ITS_BE.Response;
 
@@ -10,6 +11,8 @@ namespace ITS_BE.Services.Orders
         Task CancelOrder(long orderId, string userId);
         Task<PageRespone<OrderDTO>> GetOrderByUserId(string userId, PageResquest resquest);
         Task<OrderDetailResponse> GetOrderDetail(long orderId, string userId);
+        Task Review(long orderId, string userId, IEnumerable<ReviewRequest> reviews);
+
 
         //Admin
         Task<PageRespone<OrderDTO>> GetAllOrder(int page, int pageSize, string? key);

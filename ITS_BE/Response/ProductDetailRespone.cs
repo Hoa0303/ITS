@@ -14,6 +14,8 @@
         public int Discount { get; set; }
         public int BrandId { get; set; }
         public int CategoryId { get; set; }
+        public float Rating { get; set; }
+        public int RatingCount {  get; set; }
         public string CategoryName { get; set; }
         public string BrandName { get; set; }
         public float SizeScreen { get; set; }

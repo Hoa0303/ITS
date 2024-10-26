@@ -9,6 +9,7 @@
         public bool Enable { get; set; }
         public int Sold { get; set; }
         public double Price { get; set; }
+        public float Rating { get; set; }
         public string CategoryName { get; set; }
         public string BrandName { get; set; }
         public float SizeScreen { get; set; }

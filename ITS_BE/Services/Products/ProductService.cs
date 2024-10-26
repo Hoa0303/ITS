@@ -7,6 +7,7 @@ using ITS_BE.Repository.ImageRepository;
 using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductDetailRepository;
 using ITS_BE.Repository.ProductRepository;
+using ITS_BE.Repository.ReviewRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
 using ITS_BE.Storage;
@@ -21,17 +22,20 @@ namespace ITS_BE.Services.Products
         private readonly IImageRepository _imageRepository;
         private readonly IProductColorRepository _productColorRepository;
         private readonly IProductDetailRepository _productDetailRepository;
+        private readonly IReviewRepository _reviewRepository;
         private readonly IMapper _mapper;
         private readonly IFileStorage _fileStorage;
         private readonly string path = "assets/images/products";
         private readonly string path1 = "assets/images/colors";
 
-        public ProductService(IProductRepository productRepository, IImageRepository imageRepository, IMapper mapper, IFileStorage fileStorage,
-            IProductColorRepository productColorRepository, IProductDetailRepository productDetailRepository)
+        public ProductService(IProductRepository productRepository, IImageRepository imageRepository,
+            IMapper mapper, IFileStorage fileStorage, IProductColorRepository productColorRepository,
+            IProductDetailRepository productDetailRepository, IReviewRepository reviewRepository)
         {
             _productRepository = productRepository;
             _productColorRepository = productColorRepository;
             _productDetailRepository = productDetailRepository;
+            _reviewRepository = reviewRepository;
             _imageRepository = imageRepository;
             _mapper = mapper;
             _fileStorage = fileStorage;
@@ -217,7 +221,7 @@ namespace ITS_BE.Services.Products
                 {
                     var input = filters.search.Trim().Split(' ').Select(x => x.ToLower());
 
-                    expression = CombineExpressions(expression, e => input.All(x => e.Name.ToLower().Contains(x))); 
+                    expression = CombineExpressions(expression, e => input.All(x => e.Name.ToLower().Contains(x)));
                 }
 
                 totalProduct = await _productRepository.CountAsync(expression);
@@ -233,14 +237,13 @@ namespace ITS_BE.Services.Products
                         products = await _productRepository
                            .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, priceExp);
                         break;
-                    case SortEnum.NAME:
-                        products = await _productRepository
-                           .GetPagedAsync(filters.page, filters.pageSize, expression, e => e.Name);
-                        break;
-
+                    //case SortEnum.NAME:
+                    //    products = await _productRepository
+                    //       .GetPagedAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
+                    //    break;
                     default:
                         products = await _productRepository
-                           .GetPagedAsync(filters.page, filters.pageSize, expression, e => e.Name);
+                           .GetPagedAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
                         break;
                 }
                 var res = _mapper.Map<IEnumerable<ProductDTO>>(products).ToList();
@@ -454,6 +457,35 @@ namespace ITS_BE.Services.Products
             {
                 throw new Exception(ex.InnerException?.Message ?? ex.Message);
             }
+        }
+
+        public async Task<IEnumerable<ColorDTO>> GetColorById(int id)
+        {
+            var color = await _productColorRepository.GetColorProductAsync(id);
+            return _mapper.Map<IEnumerable<ColorDTO>>(color);
+        }
+
+        public async Task<IEnumerable<NameDTO>> GetNameProduct()
+        {
+            var products = await _productRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<NameDTO>>(products);
+        }
+
+        public async Task<PageRespone<ReviewDTO>> GetReview(int id, PageResquest resquest)
+        {
+            var review = await _reviewRepository
+                .GetPagedOrderByDescendingAsync(resquest.page, resquest.pageSize, e => e.ProductId == id, e => e.CreateAt);
+
+            var total = await _reviewRepository.CountAsync(e => e.ProductId == id);
+            var items = _mapper.Map<IEnumerable<ReviewDTO>>(review);
+
+            return new PageRespone<ReviewDTO>
+            {
+                Items = items,
+                Page = resquest.page,
+                PageSize = resquest.pageSize,
+                TotalItems = total,
+            };
         }
     }
 }

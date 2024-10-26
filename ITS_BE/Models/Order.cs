@@ -22,6 +22,8 @@ namespace ITS_BE.Models
         public string? UserId { get; set; }
         public User? User { get; set; }
 
+        public bool Reviewed { get; set; }
+
         public int? PaymentMethodId { get; set; }
         public string PaymentMethodName { get; set; }
         public PaymentMethod? PaymentMethod { get; set; }

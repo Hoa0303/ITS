@@ -20,6 +20,7 @@ namespace ITS_BE.Mapping
             CreateMap<Color, ColorDTO>().ReverseMap();
 
             CreateMap<Product, ProductDTO>().ReverseMap();
+            CreateMap<Product, NameDTO>().ReverseMap();
             CreateMap<Product, VersionDTO>().ReverseMap();
             CreateMap<Product, ProductDTO>()
                 .ForMember(des => des.BrandName, opt => opt.MapFrom(src => src.Brand.Name))
@@ -47,13 +48,17 @@ namespace ITS_BE.Mapping
                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Product.Category.Name))
                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Product.CategoryId))
                .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Product.Discount))
-               .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Product.Name));
+               .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Product.Name))
+               .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Product.Rating))
+               .ForMember(dest => dest.RatingCount, opt => opt.MapFrom(src => src.Product.RatingCount));
 
             CreateMap<Product_Color, ColorResponse>()
                 .ForMember(dest => dest.ColorId, opt => opt.MapFrom(src => src.ColorId))
                 .ForMember(dest => dest.Prices, opt => opt.MapFrom(src => src.Prices))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
+            CreateMap<Product_Color, ColorDTO>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Color.Name));
 
             CreateMap<PaymentMethodDTO, PaymentMethod>().ReverseMap();
 
@@ -64,7 +69,12 @@ namespace ITS_BE.Mapping
             CreateMap<Order, OrderDetailResponse>()
                 .ForMember(dest => dest.ProductOrderDetails, opt => opt.MapFrom(src => src.OrderDetials));
 
-            CreateMap<Receipt, ReceiptDTO>().ReverseMap();
+            CreateMap<Receipt, ReceiptDTO>()
+                .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.User.FullName));
+            CreateMap<ReceiptDetail, ReceiptDetailResponse>();
+
+            CreateMap<Review, ReviewDTO>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName));
         }
     }
 }

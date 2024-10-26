@@ -49,6 +49,7 @@ namespace ITS_BE.Repository.ProductRepository
                .Include(e => e.Details)
                .Include(e => e.Images)
                .Include(e => e.Product_Colors)
+               .AsSingleQuery()
                .SingleOrDefaultAsync(expression);
         }
 
@@ -60,6 +61,7 @@ namespace ITS_BE.Repository.ProductRepository
                 .Include(e => e.Details)
                 .Include(e => e.Images)
                 .Include(e => e.Product_Colors)
+                .AsSingleQuery()
                 .SingleOrDefaultAsync(e => e.Id == id);
         }
 

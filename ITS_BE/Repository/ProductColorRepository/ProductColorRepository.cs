@@ -14,7 +14,10 @@ namespace ITS_BE.Repository.ProductColorRepository
             _dbContext = dbContext;
         }
         public async Task<IEnumerable<Product_Color>> GetColorProductAsync(int ProductId)
-            => await _dbContext.Product_Colors.Where(e => e.ProductId == ProductId).ToListAsync();
+            => await _dbContext.Product_Colors
+                .Where(e => e.ProductId == ProductId)
+                .Include(e => e.Color)
+                .ToListAsync();
 
         public async Task<Product_Color?> GetFirstColorByProductAsync(int id)
          => await _dbContext.Product_Colors.FirstOrDefaultAsync(e => e.ProductId == id);

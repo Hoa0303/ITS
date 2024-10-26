@@ -9,6 +9,7 @@ namespace ITS_BE.DTO
         public double AmountPaid { get; set; }
         public DateTime OrderDate { get; set; }
         public string PaymentMethod { get; set; }
+        public bool Reviewed { get; set; }
         public DeliveryStatusEnum OrderStatus { get; set; }
 
         public string? PayBackUrl { get; set; }

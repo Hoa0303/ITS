@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ITS_BE.Constants;
 using ITS_BE.DTO;
 using ITS_BE.Models;
 using ITS_BE.Repository.ProductColorRepository;
@@ -7,11 +8,14 @@ using ITS_BE.Repository.ReceiptRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
 using MailKit.Search;
+using Microsoft.AspNetCore.Identity;
+using System.Linq.Expressions;
 
 namespace ITS_BE.Services.Receipts
 {
     public class ReceiptService : IReceiptService
     {
+        private readonly UserManager<User> _userManager;
         private readonly IReceiptRepository _receiptRepository;
         private readonly IReceiptDetailRepository _receiptDetailRepository;
         private readonly IProductRepository _productRepository;
@@ -19,9 +23,11 @@ namespace ITS_BE.Services.Receipts
         private readonly IMapper _mapper;
 
         public ReceiptService(IReceiptRepository receiptRepository, IReceiptDetailRepository receiptDetailRepository,
-            IMapper mapper, IProductRepository productRepository, IProductColorRepository productColorRepository)
+            IMapper mapper, IProductRepository productRepository, IProductColorRepository productColorRepository,
+            UserManager<User> userManager)
         {
             _receiptRepository = receiptRepository;
+            _userManager = userManager;
             _receiptDetailRepository = receiptDetailRepository;
             _productRepository = productRepository;
             _productColorRepository = productColorRepository;
@@ -98,6 +104,16 @@ namespace ITS_BE.Services.Receipts
                 PageSize = pageSize,
                 TotalItems = total
             };
+        }
+
+        public async Task<IEnumerable<ReceiptDetailResponse>> GetbyId(long id)
+        {
+            var receipt = await _receiptDetailRepository.GetAsync(e => e.ReceiptId == id);
+            if (receipt != null)
+            {
+                return _mapper.Map<IEnumerable<ReceiptDetailResponse>>(receipt);
+            }
+            else throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
         }
     }
 }

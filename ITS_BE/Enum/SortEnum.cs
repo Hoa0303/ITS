@@ -2,7 +2,7 @@
 {
     public enum SortEnum
     {
-        NAME,
+        //NAME,
         PRICE_ASC,
         PRICE_DESC,
     }

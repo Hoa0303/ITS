@@ -66,18 +66,20 @@ namespace ITS_BE.Repository.CommonRepository
 
         public virtual async Task<IEnumerable<T>> GetPagedAsync<TKey>(int page, int pageSize, Expression<Func<T, bool>>? expression, Expression<Func<T, TKey>> orderBy)
             => expression == null
-            ? await _context.Set<T>().OrderBy(orderBy).Paginate(page, pageSize).ToArrayAsync()
-            : await _context.Set<T>().Where(expression).OrderBy(orderBy).Paginate(page, pageSize).ToArrayAsync();
+            ? await _context.Set<T>().Paginate(page, pageSize).OrderBy(orderBy).ToArrayAsync()
+            : await _context.Set<T>().Where(expression).Paginate(page, pageSize).OrderBy(orderBy).ToArrayAsync();
 
         public virtual async Task<IEnumerable<T>> GetPagedOrderByDescendingAsync<TKey>(int page, int pageSize, Expression<Func<T, bool>>? expression, Expression<Func<T, TKey>> orderByDesc)
             => expression == null
             ? await _context.Set<T>()
+                .Paginate(page, pageSize)
                 .OrderByDescending(orderByDesc)
-                .Paginate(page, pageSize).ToArrayAsync()
+                .ToArrayAsync()
             : await _context.Set<T>()
                 .Where(expression)
+                .Paginate(page, pageSize)
                 .OrderByDescending(orderByDesc)
-                .Paginate(page, pageSize).ToArrayAsync();
+                .ToArrayAsync();
 
         public async Task<T> SingleAsync(Expression<Func<T, bool>> expression)
             => await _context.Set<T>().SingleAsync(expression);

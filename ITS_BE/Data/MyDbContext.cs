@@ -14,6 +14,7 @@ namespace ITS_BE.Data
         public DbSet<Brand> Brands { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<Review> Reviews { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<Color> Colors { get; set; }
         public DbSet<Product_Color> Product_Colors { get; set; }

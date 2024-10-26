@@ -9,6 +9,7 @@ using ITS_BE.Repository.CartItemRepository;
 using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductRepository;
+using ITS_BE.Repository.ReviewRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
 using ITS_BE.Services.Caching;
@@ -24,6 +25,7 @@ namespace ITS_BE.Services.Orders
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
         private readonly IProductColorRepository _productColorRepository;
+        private readonly IReviewRepository _reviewRepository;
         private readonly ICartItemRepository _cartItemRepository;
         private readonly IPaymentMethodRepository _paymentMethodRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
@@ -38,10 +40,11 @@ namespace ITS_BE.Services.Orders
             ICartItemRepository cartItemRepository, IPaymentMethodRepository paymentMethodRepository,
             IOrderDetailRepository orderDetailRepository, IPaymentService paymentService,
             IServiceScopeFactory serviceScopeFactory, ICachingService cachingService,
-            IConfiguration configuration, IMapper mapper)
+            IConfiguration configuration, IMapper mapper, IReviewRepository reviewRepository)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
+            _reviewRepository = reviewRepository;
             _productColorRepository = productColorRepository;
             _cartItemRepository = cartItemRepository;
             _paymentMethodRepository = paymentMethodRepository;
@@ -446,6 +449,50 @@ namespace ITS_BE.Services.Orders
             order.Expected_delivery_time = dataRes?.Data?.Expected_delivery_time;
             order.OrderStatus = DeliveryStatusEnum.Shipping;
             await _orderRepository.UpdateAsync(order);
+        }
+
+        public async Task Review(long orderId, string userId, IEnumerable<ReviewRequest> reviews)
+        {
+            try
+            {
+                var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId && e.UserId == userId)
+                    ?? throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
+                if (order.OrderStatus != DeliveryStatusEnum.Received && order.OrderStatus != DeliveryStatusEnum.Done)
+                {
+                    throw new InvalidDataException("Chưa thể đánh giá đơn hàng này.");
+                }
+                List<Review> pReview = new();
+                List<Product> products = new();
+
+                foreach(var review in reviews)
+                {
+                    var product = await _productRepository.FindAsync(review.ProductId);
+                    if(product != null)
+                    {
+                        var currentStart = product.Rating * product.RatingCount;
+                        product.Rating = (currentStart + review.Start) / (product.RatingCount + 1);
+                        product.RatingCount += 1;
+
+                        products.Add(product);
+                        pReview.Add(new Review
+                        {
+                            ProductId = review.ProductId,
+                            UserId = userId,
+                            Start = review.Start,
+                            Description = review.Description,
+                        });
+                    }
+                }
+
+                await _productRepository.UpdateAsync(products);
+                await _reviewRepository.AddAsync(pReview);
+                order.Reviewed = true;
+                await _orderRepository.UpdateAsync(order);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }
