@@ -338,7 +338,7 @@ namespace ITS_BE.Services.Orders
                     || order.OrderStatus.Equals(DeliveryStatusEnum.Confirmed))
                 {
                     order.OrderStatus = DeliveryStatusEnum.Canceled;
-                    
+
 
                     _cachingService.Remove("Order " + orderId);
                     await _orderRepository.UpdateAsync(order);
@@ -457,17 +457,17 @@ namespace ITS_BE.Services.Orders
             {
                 var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId && e.UserId == userId)
                     ?? throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
-                if (order.OrderStatus != DeliveryStatusEnum.Received && order.OrderStatus != DeliveryStatusEnum.Done)
+                if (order.OrderStatus != DeliveryStatusEnum.Received)
                 {
                     throw new InvalidDataException("Chưa thể đánh giá đơn hàng này.");
                 }
                 List<Review> pReview = new();
                 List<Product> products = new();
 
-                foreach(var review in reviews)
+                foreach (var review in reviews)
                 {
                     var product = await _productRepository.FindAsync(review.ProductId);
-                    if(product != null)
+                    if (product != null)
                     {
                         var currentStart = product.Rating * product.RatingCount;
                         product.Rating = (currentStart + review.Start) / (product.RatingCount + 1);
@@ -493,6 +493,110 @@ namespace ITS_BE.Services.Orders
             {
                 throw;
             }
+        }
+
+        public async Task<PageRespone<OrderDTO>> GetWithOrderStatus(DeliveryStatusEnum statusEnum, PageResquest request)
+        {
+            int total;
+            IEnumerable<Order> orders;
+
+            string? key = request.search?.ToLower();
+
+            Expression<Func<Order, DateTime?>> sortExpression = e => e.CreateAt;
+
+            if (statusEnum == DeliveryStatusEnum.Proccessing)
+            {
+                sortExpression = e => e.CreateAt;
+            }
+            if (string.IsNullOrEmpty(key))
+            {
+                total = await _orderRepository.CountAsync(e => e.OrderStatus == statusEnum);
+                orders = await _orderRepository
+                    .GetPagedOrderByDescendingAsync(request.page, request.pageSize, e => e.OrderStatus == statusEnum, sortExpression);
+            }
+            else
+            {
+                bool isLong = long.TryParse(key, out long idSearch);
+                Expression<Func<Order, bool>> expression =
+                    e => e.OrderStatus == statusEnum &&
+                    (isLong && e.Id.Equals(idSearch)
+                    || e.PaymentMethodName.ToLower().Contains(key));
+
+                total = await _orderRepository.CountAsync(expression);
+                orders = await _orderRepository.GetPagedOrderByDescendingAsync(request.page, request.pageSize, expression, sortExpression);
+            }
+            var items = _mapper.Map<IEnumerable<OrderDTO>>(orders);
+
+            return new PageRespone<OrderDTO>
+            {
+                Items = items,
+                Page = request.page,
+                PageSize = request.pageSize,
+                TotalItems = total,
+            };
+        }
+
+        public async Task<PageRespone<OrderDTO>> GetWithOrderStatus(string userId, DeliveryStatusEnum statusEnum, PageResquest request)
+        {
+            int total;
+            IEnumerable<Order> orders;
+
+            string? key = request.search?.ToLower();
+
+            Expression<Func<Order, DateTime?>> sortExpression = e => e.CreateAt;
+
+            if (statusEnum == DeliveryStatusEnum.Proccessing)
+            {
+                sortExpression = e => e.CreateAt;
+            }
+
+            if (string.IsNullOrEmpty(key))
+            {
+                total = await _orderRepository.CountAsync(e => e.OrderStatus == statusEnum && e.UserId == userId);
+                orders = await _orderRepository
+                    .GetPagedOrderByDescendingAsync(request.page, request.pageSize, e => e.OrderStatus == statusEnum && e.UserId == userId, sortExpression);
+            }
+            else
+            {
+                bool isLong = long.TryParse(key, out long idSearch);
+                Expression<Func<Order, bool>> expression = e => e.OrderStatus == statusEnum &&
+                e.UserId == userId && (isLong && e.Id.Equals(idSearch)
+                    || e.PaymentMethodName.ToLower().Contains(key));
+
+                total = await _orderRepository.CountAsync(expression);
+                orders = await _orderRepository.GetPagedOrderByDescendingAsync(request.page, request.pageSize, expression, sortExpression);
+            }
+
+            var items = _mapper.Map<IEnumerable<OrderDTO>>(orders).Select(x =>
+            {
+                x.PayBackUrl = _cachingService.Get<OrderCache?>("Order " + x.Id)?.Url;
+                return x;
+            });
+
+            return new PageRespone<OrderDTO>
+            {
+                Items = items,
+                Page = request.page,
+                PageSize = request.pageSize,
+                TotalItems = total,
+            };
+        }
+
+        public async Task Received(long orderId)
+        {
+            //var now = DateTime.Now;
+            var order = await _orderRepository.FindAsync(orderId);
+            if (order != null)
+            {
+                if (order.OrderStatus.Equals(DeliveryStatusEnum.Shipping))
+                {
+                    order.OrderStatus += 1;
+                    //order.ReceivedDate = now;
+                    await _orderRepository.UpdateAsync(order);
+                }
+                else throw new InvalidDataException(ErrorMessage.ERROR);
+            }
+            else throw new InvalidDataException(ErrorMessage.NOT_FOUND);
         }
     }
 }

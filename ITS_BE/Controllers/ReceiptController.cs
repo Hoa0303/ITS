@@ -49,15 +49,17 @@ namespace ITS_BE.Controllers
             }
         }
 
+
         [HttpGet("{id}")]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(long id)
         {
             try
             {
                 var res = await _receiptService.GetbyId(id);
                 return Ok(res);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }

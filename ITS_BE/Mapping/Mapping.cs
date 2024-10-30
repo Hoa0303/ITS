@@ -58,6 +58,7 @@ namespace ITS_BE.Mapping
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
             CreateMap<Product_Color, ColorDTO>()
+                .ForMember(dest => dest.id, opt => opt.MapFrom(src => src.Color.Id))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Color.Name));
 
             CreateMap<PaymentMethodDTO, PaymentMethod>().ReverseMap();

@@ -9,6 +9,7 @@ using ITS_BE.Request;
 using ITS_BE.Response;
 using MailKit.Search;
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace ITS_BE.Services.Receipts
@@ -44,6 +45,7 @@ namespace ITS_BE.Services.Receipts
                     UserId = userId,
                     Note = request.Note,
                     Total = request.Total,
+                    EntryDate = request.EntryDate,
                 };
                 await _receiptRepository.AddAsync(receipt);
 

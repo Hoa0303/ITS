@@ -26,6 +26,7 @@ using ITS_BE.Services.Payment;
 using ITS_BE.Services.Products;
 using ITS_BE.Services.Receipts;
 using ITS_BE.Services.SendEmail;
+using ITS_BE.Services.Statistics;
 using ITS_BE.Services.Users;
 using ITS_BE.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -128,6 +129,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
+builder.Services.AddScoped<IStatisticService, StatisticService>();
 
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();

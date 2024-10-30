@@ -1,4 +1,5 @@
-﻿using ITS_BE.Request;
+﻿using ITS_BE.Enum;
+using ITS_BE.Request;
 using ITS_BE.Services.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -70,6 +71,43 @@ namespace ITS_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+
+        [HttpGet("status/{status}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetOrderWithStatus(DeliveryStatusEnum status, [FromQuery] PageResquest resquest)
+        {
+            try
+            {
+                var res = await _orderService.GetWithOrderStatus(status, resquest);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("user/{status}")]
+        public async Task<IActionResult> GetUserOrderWithStatus(DeliveryStatusEnum status, [FromQuery] PageResquest resquest)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var res = await _orderService.GetWithOrderStatus(userId, status, resquest);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
 
         [HttpGet("get-all")]
         [Authorize(Roles = "Admin")]
@@ -209,6 +247,20 @@ namespace ITS_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-    
+
+
+        [HttpPut("received/{id}")]
+        public async Task<IActionResult> ReceivedOrder(long id)
+        {
+            try
+            {
+                await _orderService.Received(id);
+                return NoContent();
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ namespace ITS_BE.Models
         public string? UserId { get; set; }
         public User? User { get; set; }
         public double Total { get; set; }
+        public DateTime EntryDate { get; set; } = DateTime.Now;
 
         public ICollection<ReceiptDetail> ReceiptDetails { get; } = new HashSet<ReceiptDetail>();
         public DateTime CreateAt { get; set; }
