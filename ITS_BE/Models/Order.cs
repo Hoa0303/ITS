@@ -8,6 +8,7 @@ namespace ITS_BE.Models
         public long Id { get; set; }
         public double Total { get; set; }
         public DateTime OrderDate { get; set; }
+        public DateTime ReceivedDate {  get; set; }
 
         public string DeliveryAddress { get; set; }
         public int DistrictId { get; set; } //for GHN

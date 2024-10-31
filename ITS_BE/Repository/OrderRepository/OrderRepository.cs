@@ -1,6 +1,7 @@
 ﻿using ITS_BE.Data;
 using ITS_BE.Models;
 using ITS_BE.Repository.CommonRepository;
+using ITS_BE.Response;
 using ITS_BE.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -29,5 +30,39 @@ namespace ITS_BE.Repository.OrderRepository
                 .OrderByDescending(orderByDesc)
                 .Paginate(page, pageSize)
                 .ToArrayAsync();
+
+        public async Task<IEnumerable<StatisticData>> GetTotalSalesByYear(int year, int? month)
+        => month == null
+            ? await _dbContext.Orders
+                .Where(e => e.ReceivedDate.Year == year &&
+                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                .GroupBy(e => new { e.ReceivedDate.Month, e.ReceivedDate.Year })
+                .Select(g => new StatisticData
+                {
+                    Time = g.Key.Month,
+                    Statistic = g.Sum(x => x.Total)
+                }).ToArrayAsync()
+            : await _dbContext.Orders
+                .Where(e => e.ReceivedDate.Year == year && e.ReceivedDate.Month == month &&
+                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                .GroupBy(e => new { e.ReceivedDate.Day, e.ReceivedDate.Month })
+                .Select(g => new StatisticData
+                {
+                    Time = g.Key.Day,
+                    Statistic = g.Sum(x => x.Total)
+                }).ToArrayAsync();
+
+        public async Task<IEnumerable<StatisticDateData>> GetTotalSales(DateTime dateFrom, DateTime dateTo)
+        {
+            return await _dbContext.Orders
+                .Where(e => e.ReceivedDate >= dateFrom && e.ReceivedDate <= dateTo.AddDays(1) &&
+                    (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                .GroupBy(e => new { e.ReceivedDate.Date })
+                .Select(g => new StatisticDateData
+                {
+                    Time = g.Key.Date,
+                    Statistic = g.Sum(x => x.Total)
+                }).ToArrayAsync();
+        }
     }
 }

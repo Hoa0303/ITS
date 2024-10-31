@@ -584,14 +584,14 @@ namespace ITS_BE.Services.Orders
 
         public async Task Received(long orderId)
         {
-            //var now = DateTime.Now;
+            var now = DateTime.Now;
             var order = await _orderRepository.FindAsync(orderId);
             if (order != null)
             {
                 if (order.OrderStatus.Equals(DeliveryStatusEnum.Shipping))
                 {
                     order.OrderStatus += 1;
-                    //order.ReceivedDate = now;
+                    order.ReceivedDate = now;
                     await _orderRepository.UpdateAsync(order);
                 }
                 else throw new InvalidDataException(ErrorMessage.ERROR);

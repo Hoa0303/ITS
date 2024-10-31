@@ -77,7 +77,7 @@ namespace ITS_BE.Controllers
         {
             try
             {
-                var result = await _statisticService.GetTotalSpending(year, month);
+                var result = await _statisticService.GetTotalSpendingByYear(year, month);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -107,7 +107,7 @@ namespace ITS_BE.Controllers
         {
             try
             {
-                var result = await _statisticService.GetTotalSales(year, month);
+                var result = await _statisticService.GetTotalSalesByYear(year, month);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -140,7 +140,7 @@ namespace ITS_BE.Controllers
                 var res = await _statisticService.GetRevenue(year, month);
                 return Ok(res);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }

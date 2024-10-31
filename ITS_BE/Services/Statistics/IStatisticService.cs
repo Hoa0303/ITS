@@ -8,10 +8,11 @@ namespace ITS_BE.Services.Statistics
         Task<int> GetCountReceipt();
         Task<int> GetCountOrder();
         Task<int> GetCountProduct();
-        Task<StatisticResponse<int>> GetTotalSpending(int year, int? month);
-        Task<StatisticResponse<int>> GetTotalSales(int year, int? month);
-        Task<StatisticResponse<DateTime>> GetTotalSpending(DateTime dateFrom, DateTime dateTo);
-        Task<StatisticResponse<DateTime>> GetTotalSales(DateTime dateFrom, DateTime dateTo);
-        Task<StatisticResponse<int>> GetRevenue(int year, int? month);
+
+        Task<StatisticResponse> GetTotalSpendingByYear(int year, int? month);
+        Task<StatisticResponse> GetTotalSalesByYear(int year, int? month);
+        Task<StatisticDateResponse> GetTotalSpending(DateTime dateFrom, DateTime dateTo);
+        Task<StatisticDateResponse> GetTotalSales(DateTime dateFrom, DateTime dateTo);
+        Task<RevenueResponse> GetRevenue(int year, int? month);
     }
 }
