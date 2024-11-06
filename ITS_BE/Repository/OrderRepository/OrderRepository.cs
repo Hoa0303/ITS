@@ -64,5 +64,45 @@ namespace ITS_BE.Repository.OrderRepository
                     Statistic = g.Sum(x => x.Total)
                 }).ToArrayAsync();
         }
+
+        public async Task<IEnumerable<StatisticData>> GetTotalProductSalesByYear(int productId, int year, int? month)
+        => month == null
+            ? await _dbContext.Orders
+            .Where(e => e.ReceivedDate.Year == year &&
+                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+            .SelectMany(r => r.OrderDetials)
+            .Where(e => e.ProductId == productId)
+            .GroupBy(e => e.Order.ReceivedDate.Month)
+            .Select(g => new StatisticData
+            {
+                Time = g.Key,
+                Statistic = g.Sum(x => x.Price)
+            }).ToArrayAsync()
+            : await _dbContext.Orders
+            .Where(e => e.ReceivedDate.Year == year && e.ReceivedDate.Month == month &&
+                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+            .SelectMany(r => r.OrderDetials)
+            .Where(e => e.ProductId == productId)
+            .GroupBy(e => e.Order.ReceivedDate.Day)
+            .Select(g => new StatisticData
+            {
+                Time = g.Key,
+                Statistic = g.Sum(x => x.Price)
+            }).ToArrayAsync();
+
+        public async Task<IEnumerable<StatisticDateData>> GetTotalProductSales(int productId, DateTime dateFrom, DateTime dateTo)
+        {
+            return await _dbContext.Orders
+                .Where(e => e.ReceivedDate >= dateFrom && e.ReceivedDate <= dateTo.AddDays(1) &&
+                    (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                .SelectMany(s => s.OrderDetials)
+                .Where(e => e.ProductId == productId)
+                .GroupBy(gb => gb.Order.ReceivedDate.Date)
+                .Select(g => new StatisticDateData
+                {
+                    Time = g.Key,
+                    Statistic = g.Sum(x => x.Price)
+                }).ToArrayAsync();
+        }
     }
 }

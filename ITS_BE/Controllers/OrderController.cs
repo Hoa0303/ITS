@@ -257,10 +257,11 @@ namespace ITS_BE.Controllers
                 await _orderService.Received(id);
                 return NoContent();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+        
     }
 }

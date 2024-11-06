@@ -14,8 +14,15 @@
 
     public class RevenueResponse
     {
-        public IEnumerable<StatisticData> Spending { get; set; }
-        public IEnumerable<StatisticData> Sales { get; set; }
+        public StatisticResponse Spending { get; set; }
+        public StatisticResponse Sales { get; set; }
+        public double Total { get; set; }
+    }
+
+    public class RevenueDateResponse
+    {
+        public StatisticDateResponse Spending { get; set; }
+        public StatisticDateResponse Sales { get; set; }
         public double Total { get; set; }
     }
 

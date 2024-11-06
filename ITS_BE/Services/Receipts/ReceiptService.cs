@@ -7,10 +7,8 @@ using ITS_BE.Repository.ProductRepository;
 using ITS_BE.Repository.ReceiptRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
-using MailKit.Search;
+using ITS_BE.Services.History;
 using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace ITS_BE.Services.Receipts
 {
@@ -21,11 +19,12 @@ namespace ITS_BE.Services.Receipts
         private readonly IReceiptDetailRepository _receiptDetailRepository;
         private readonly IProductRepository _productRepository;
         private readonly IProductColorRepository _productColorRepository;
+        private readonly ILogService _logService;
         private readonly IMapper _mapper;
 
         public ReceiptService(IReceiptRepository receiptRepository, IReceiptDetailRepository receiptDetailRepository,
             IMapper mapper, IProductRepository productRepository, IProductColorRepository productColorRepository,
-            UserManager<User> userManager)
+            UserManager<User> userManager, ILogService logService)
         {
             _receiptRepository = receiptRepository;
             _userManager = userManager;
@@ -33,6 +32,7 @@ namespace ITS_BE.Services.Receipts
             _productRepository = productRepository;
             _productColorRepository = productColorRepository;
             _productColorRepository = productColorRepository;
+            _logService = logService;
             _mapper = mapper;
         }
 
@@ -116,6 +116,78 @@ namespace ITS_BE.Services.Receipts
                 return _mapper.Map<IEnumerable<ReceiptDetailResponse>>(receipt);
             }
             else throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task<ReceiptDTO> UpdateReceipt(long receiptId, ReceiptRequest request)
+        {
+            try
+            {
+                var receipt = await _receiptRepository.FindAsync(receiptId)
+                    ?? throw new ArgumentException(ErrorMessage.NOT_FOUND);
+
+                var logRequest = new LogRequest
+                {
+                    UserId = receipt.UserId,
+                    Note = receipt.Note,
+                    Total = receipt.Total,
+                    EntryDate = receipt.EntryDate,
+                    ReceiptId = receiptId,
+                    logProducts = (await _receiptDetailRepository
+                    .GetAsync(e => e.ReceiptId == receiptId))
+                    .Select(d => new LogProduct
+                    {
+                        ProductName = d.Product.Name,
+                        ColorName = d.Color.Name,
+                        CostPrice = d.CostPrice,
+                        Quantity = d.Quantity,
+                    }).ToList()
+                };
+
+                await _logService.CreateLog(logRequest);
+
+                receipt.Note = request.Note;
+                receipt.Total = request.Total;
+                receipt.EntryDate = request.EntryDate;
+
+                await _receiptRepository.UpdateAsync(receipt);
+
+                var listReceiptDetailUpdate = new List<ReceiptDetail>();
+                var listProductColorUpdate = new List<Product_Color>();
+                var receiptDetail = await _receiptDetailRepository.GetAsync(e => e.ReceiptId == receiptId);
+
+                foreach (var item in request.ReceiptProducts)
+                {
+                    int quantityOld = 0;
+
+                    var existingDetail = receiptDetail
+                        .FirstOrDefault(d => d.ProductId == item.ProductId && d.ColorId == item.ColorId);
+                    if (existingDetail != null)
+                    {
+                        quantityOld = existingDetail.Quantity;
+                        existingDetail.Quantity = item.Quantity;
+                        existingDetail.CostPrice = item.CostPrice;
+                        listReceiptDetailUpdate.Add(existingDetail);
+                    }
+
+                    var productColor = await _productColorRepository
+                        .SingleOrDefaultAsync(d => d.ProductId == item.ProductId && d.ColorId == item.ColorId);
+
+                    if (productColor != null)
+                    {
+                        productColor.Quantity += (item.Quantity - quantityOld);
+                        listProductColorUpdate.Add(productColor);
+                    }
+                }
+
+                await _productColorRepository.UpdateAsync(listProductColorUpdate);
+                await _receiptDetailRepository.UpdateAsync(listReceiptDetailUpdate);
+
+                return _mapper.Map<ReceiptDTO>(receipt);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

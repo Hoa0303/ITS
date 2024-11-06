@@ -33,6 +33,20 @@ namespace ITS_BE.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateRecipte(long id, [FromBody] ReceiptRequest request)
+        {
+            try
+            {
+                var res = await _receiptService.UpdateReceipt(id, request);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]

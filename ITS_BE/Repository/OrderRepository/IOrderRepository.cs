@@ -11,5 +11,8 @@ namespace ITS_BE.Repository.OrderRepository
         Task<IEnumerable<StatisticData>> GetTotalSalesByYear(int year, int? month);
         Task<IEnumerable<StatisticDateData>> GetTotalSales(DateTime dateFrom, DateTime dateTo);
 
+        Task<IEnumerable<StatisticData>> GetTotalProductSalesByYear(int productId, int year, int? month);
+        Task<IEnumerable<StatisticDateData>> GetTotalProductSales(int productId, DateTime dateFrom, DateTime dateTo);
+
     }
 }

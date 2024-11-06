@@ -25,6 +25,8 @@ namespace ITS_BE.Data
         public DbSet<OrderDetail> OrderDetials { get; set; }
         public DbSet<Receipt> Receipts { get; set; }
         public DbSet<ReceiptDetail> ReceiptDetails { get; set; }
+        public DbSet<Log> Logs { get; set; }
+        public DbSet<LogDetail> LogDetails { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         private void UpdateTimestamps()
         {

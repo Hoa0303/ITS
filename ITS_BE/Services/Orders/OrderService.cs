@@ -15,6 +15,8 @@ using ITS_BE.Response;
 using ITS_BE.Services.Caching;
 using ITS_BE.Services.Payment;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 
@@ -339,9 +341,26 @@ namespace ITS_BE.Services.Orders
                 {
                     order.OrderStatus = DeliveryStatusEnum.Canceled;
 
+                    var orderDetail = await _orderDetailRepository.GetAsync(e => e.OrderId == orderId);
+                    var listProductColorUpdate = new List<Product_Color>();
+                    var listProductUpdate = new List<Product>();
+
+                    foreach (var item in orderDetail)
+                    {
+                        var color = await _productColorRepository
+                            .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+
+                        item.Product.Sold -= item.Quantity;
+                        listProductUpdate.Add(item.Product);
+
+                        color.Quantity += item.Quantity;
+                        listProductColorUpdate.Add(color);
+                    }
 
                     _cachingService.Remove("Order " + orderId);
                     await _orderRepository.UpdateAsync(order);
+                    await _productRepository.UpdateAsync(listProductUpdate);
+                    await _productColorRepository.UpdateAsync(listProductColorUpdate);
                 }
                 else throw new Exception(ErrorMessage.ERROR);
             }
@@ -374,8 +393,25 @@ namespace ITS_BE.Services.Orders
                 {
                     order.OrderStatus = DeliveryStatusEnum.Canceled;
 
+                    var orderDetail = await _orderDetailRepository.GetAsync(e => e.OrderId == orderId);
+                    var listProductColorUpdate = new List<Product_Color>();
+                    var listProductUpdate = new List<Product>();
+
+                    foreach (var item in orderDetail)
+                    {
+                        var color = await _productColorRepository
+                            .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+
+                        item.Product.Sold -= item.Quantity;
+                        listProductUpdate.Add(item.Product);
+
+                        color.Quantity += item.Quantity;
+                        listProductColorUpdate.Add(color);
+                    }
                     _cachingService.Remove("Order " + orderId);
                     await _orderRepository.UpdateAsync(order);
+                    await _productRepository.UpdateAsync(listProductUpdate);
+                    await _productColorRepository.UpdateAsync(listProductColorUpdate);
                 }
                 else throw new Exception(ErrorMessage.ERROR);
             }

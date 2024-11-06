@@ -8,6 +8,7 @@ using ITS_BE.Repository.CategoryRepository;
 using ITS_BE.Repository.ColorRespository;
 using ITS_BE.Repository.FavoriteRepository;
 using ITS_BE.Repository.ImageRepository;
+using ITS_BE.Repository.LogRepository;
 using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductDetailRepository;
@@ -21,10 +22,12 @@ using ITS_BE.Services.Caching;
 using ITS_BE.Services.Carts;
 using ITS_BE.Services.Categories;
 using ITS_BE.Services.Colors;
+using ITS_BE.Services.History;
 using ITS_BE.Services.Orders;
 using ITS_BE.Services.Payment;
 using ITS_BE.Services.Products;
 using ITS_BE.Services.Receipts;
+using ITS_BE.Services.Reviews;
 using ITS_BE.Services.SendEmail;
 using ITS_BE.Services.Statistics;
 using ITS_BE.Services.Users;
@@ -128,9 +131,10 @@ builder.Services.AddScoped<IColorService, ColorService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
+builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IStatisticService, StatisticService>();
-
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IDeliveryAddressRepository, DeliveryAddressRepository>();
@@ -149,6 +153,8 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
 builder.Services.AddScoped<IReceiptDetailRepository, ReceiptDetailRepository>();
+builder.Services.AddScoped<ILogRepository, LogRepository>();
+builder.Services.AddScoped<ILogDetailRepository, LogDetailRepository>();
 
 builder.Services.AddScoped<IVNPayLibrary, VNPayLibrary>();
 

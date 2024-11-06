@@ -71,58 +71,13 @@ namespace ITS_BE.Controllers
             }
         }
 
-        [HttpGet("total-spending-by-year")]
+        [HttpGet("total-revenue-by-year")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetTotalSpendingByYear(int year, int? month)
+        public async Task<IActionResult> GetRevenueByYear(int year, int? month)
         {
             try
             {
-                var result = await _statisticService.GetTotalSpendingByYear(year, month);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        [HttpGet("total-spending")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetTotalSpending(DateTime dateFrom, DateTime dateTo)
-        {
-            try
-            {
-                var res = await _statisticService.GetTotalSpending(dateFrom, dateTo);
-                return Ok(res);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet("total-sales-by-year")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetTotalSalesByYear(int year, int? month)
-        {
-            try
-            {
-                var result = await _statisticService.GetTotalSalesByYear(year, month);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet("total-sales")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetTotalSales(DateTime dateFrom, DateTime dateTo)
-        {
-            try
-            {
-                var res = await _statisticService.GetTotalSales(dateFrom, dateTo);
+                var res = await _statisticService.GetRevenueByYear(year, month);
                 return Ok(res);
             }
             catch (Exception ex)
@@ -133,11 +88,11 @@ namespace ITS_BE.Controllers
 
         [HttpGet("total-revenue")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetTotalRevenue(int year, int? month)
+        public async Task<IActionResult> GetRevenue(DateTime dateFrom, DateTime dateTo)
         {
             try
             {
-                var res = await _statisticService.GetRevenue(year, month);
+                var res = await _statisticService.GetRevenue(dateFrom, dateTo);
                 return Ok(res);
             }
             catch (Exception ex)
@@ -146,5 +101,34 @@ namespace ITS_BE.Controllers
             }
         }
 
+        [HttpGet("total-product-revenue-by-year")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetProductRevenueByYear(int year, int? month, int productId)
+        {
+            try
+            {
+                var res = await _statisticService.GetProductRevenueByYear(productId, year, month);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("total-product-revenue")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetProductRevenue(DateTime dateFrom, DateTime dateTo, int productId)
+        {
+            try
+            {
+                var res = await _statisticService.GetProductRevenue(productId, dateFrom, dateTo);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

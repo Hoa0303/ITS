@@ -26,10 +26,50 @@ namespace ITS_BE.Repository.ReceiptRepository
                 .Include(e => e.User)
                 .ToArrayAsync();
 
+        public async Task<IEnumerable<StatisticDateData>> GetTotalProductSpending(int productId, DateTime dateFrom, DateTime dateTo)
+        {
+            return await _dbContext.Receipts
+                .Where(e => e.EntryDate >= dateFrom && e.EntryDate <= dateTo.AddDays(1))
+                .SelectMany(r => r.ReceiptDetails)
+                .Where(rd => rd.ProductId == productId)
+                .GroupBy(gb => gb.Receipt.EntryDate.Date)
+                .Select(g => new StatisticDateData
+                {
+                    Time = g.Key,
+                    Statistic = g.Sum(s => s.Quantity * s.CostPrice)
+                })
+                .ToArrayAsync();
+        }
+
+        public async Task<IEnumerable<StatisticData>> GetTotalProductSpendingByYear(int productId, int year, int? month)
+        => month == null
+              ? await _dbContext.Receipts
+                .Where(r => r.EntryDate.Year == year)
+                .SelectMany(r => r.ReceiptDetails)
+                .Where(rd => rd.ProductId == productId)
+                .GroupBy(rd => rd.Receipt.EntryDate.Month)
+                .Select(g => new StatisticData
+                {
+                    Time = g.Key,
+                    Statistic = g.Sum(rd => rd.Quantity * rd.CostPrice)
+                })
+                .ToArrayAsync()
+            : await _dbContext.Receipts
+                .Where(r => r.EntryDate.Year == year && r.EntryDate.Month == month)
+                .SelectMany(r => r.ReceiptDetails)
+                .Where(rd => rd.ProductId == productId)
+                .GroupBy(rd => rd.Receipt.EntryDate.Day)
+                .Select(g => new StatisticData
+                {
+                    Time = g.Key,
+                    Statistic = g.Sum(rd => rd.Quantity * rd.CostPrice)
+                })
+                .ToArrayAsync();
+
         public async Task<IEnumerable<StatisticDateData>> GetTotalSpending(DateTime dateFrom, DateTime dateTo)
         {
             return await _dbContext.Receipts
-                .Where(e => e.EntryDate >= dateFrom && e.EntryDate <= dateTo)
+                .Where(e => e.EntryDate >= dateFrom && e.EntryDate <= dateTo.AddDays(1))
                 .GroupBy(e => new { e.EntryDate.Date })
                 .Select(g => new StatisticDateData
                 {

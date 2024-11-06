@@ -1,4 +1,5 @@
-﻿using ITS_BE.Response;
+﻿using ITS_BE.Models;
+using ITS_BE.Response;
 
 namespace ITS_BE.Services.Statistics
 {
@@ -8,11 +9,10 @@ namespace ITS_BE.Services.Statistics
         Task<int> GetCountReceipt();
         Task<int> GetCountOrder();
         Task<int> GetCountProduct();
+        Task<RevenueResponse> GetRevenueByYear(int year, int? month);
+        Task<RevenueDateResponse> GetRevenue(DateTime dateFrom, DateTime dateTo);
 
-        Task<StatisticResponse> GetTotalSpendingByYear(int year, int? month);
-        Task<StatisticResponse> GetTotalSalesByYear(int year, int? month);
-        Task<StatisticDateResponse> GetTotalSpending(DateTime dateFrom, DateTime dateTo);
-        Task<StatisticDateResponse> GetTotalSales(DateTime dateFrom, DateTime dateTo);
-        Task<RevenueResponse> GetRevenue(int year, int? month);
+        Task<RevenueResponse> GetProductRevenueByYear(int productId, int year, int? month);
+        Task<RevenueDateResponse> GetProductRevenue(int productId, DateTime dateFrom, DateTime dateTo);
     }
 }
