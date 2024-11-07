@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ITS_BE.Constants;
 using ITS_BE.DTO;
 using ITS_BE.Models;
 using ITS_BE.Repository.LogRepository;
@@ -77,6 +78,16 @@ namespace ITS_BE.Services.History
                 PageSize = pageSize,
                 TotalItems = total
             };
+        }
+
+        public async Task<IEnumerable<ReceiptDetailResponse>> GetById(long id)
+        {
+            var log = await _logDetailRepository.GetAsync(e => e.LogId == id);
+            if (log != null)
+            {
+                return _mapper.Map<IEnumerable<ReceiptDetailResponse>>(log);
+            }
+            else throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
         }
     }
 }

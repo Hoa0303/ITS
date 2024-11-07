@@ -33,7 +33,7 @@ namespace ITS_BE.Services.Reviews
 
                     await _productRepository.UpdateAsync(product);
                 }
-                await _reviewRepository.DeleteAsync(reviewId);
+                await _reviewRepository.DeleteAsync(review);
             }
             else throw new InvalidOperationException(ErrorMessage.NOT_FOUND);
         }

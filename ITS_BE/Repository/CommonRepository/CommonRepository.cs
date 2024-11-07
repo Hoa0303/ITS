@@ -36,11 +36,9 @@ namespace ITS_BE.Repository.CommonRepository
 
         public virtual async Task DeleteAsync(params object?[]? keyValues)
         {
-            var entity = await _context.FindAsync<T>(keyValues);
-            if (entity == null)
-            {
-                throw new ArgumentException($"Entity with specified keys not found.");
-            }
+            var entity = await _context.FindAsync<T>(keyValues) 
+                ?? throw new ArgumentException($"Entity with specified keys not found.");
+
             _context.Remove(entity);
             await _context.SaveChangesAsync();
         }

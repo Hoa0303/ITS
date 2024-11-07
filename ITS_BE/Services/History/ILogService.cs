@@ -8,5 +8,6 @@ namespace ITS_BE.Services.History
     {
         Task<ReceiptDTO> CreateLog(LogRequest request);
         Task<PageRespone<LogDTO>> GetAll(int page, int pageSize, string? key);
+        Task<IEnumerable<ReceiptDetailResponse>> GetById(long id);
     }
 }

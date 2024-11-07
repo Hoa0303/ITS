@@ -27,5 +27,20 @@ namespace ITS_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpGet("{id}")]
+        [Authorize(Roles ="Admin")]
+        public async Task<IActionResult> GetById(long id)
+        {
+            try
+            {
+                var res = await _logService.GetById(id);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

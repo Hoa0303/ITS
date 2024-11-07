@@ -78,6 +78,7 @@ namespace ITS_BE.Mapping
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName));
 
             CreateMap<Log, ReceiptDTO>();
+            CreateMap<LogDetail, ReceiptDetailResponse>();
 
             CreateMap<Log, LogDTO>()
                 .ForMember(dest => dest.Creator, opt => opt.MapFrom(src => src.User.FullName));
