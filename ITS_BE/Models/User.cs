@@ -6,6 +6,7 @@ namespace ITS_BE.Models
     {
         public string FullName { get; set; }
         public DeliveryAddress? DeliveryAddress { get; set; }
+        public string? ImageUrl { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
 

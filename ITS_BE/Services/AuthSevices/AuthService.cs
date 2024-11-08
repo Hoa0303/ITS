@@ -72,6 +72,7 @@ namespace ITS_BE.Services.AuthSevices
                     {
                         Jwt = token,
                         Name = user.FullName,
+                        PhoneNumber = user.PhoneNumber,
                         Roles = roles,
                     };
                 }

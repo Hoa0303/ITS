@@ -98,6 +98,44 @@ namespace ITS_BE.Controllers
             }
         }
 
+        [HttpPut("avatar")]
+        public async Task<IActionResult> UpdateImage([FromForm] IFormFileCollection files)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var img = files.First();
+                var res = await _userService.UpdateImage(userId, img);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("avatar")]
+        public async Task<IActionResult> GetImage()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var res = await _userService.GetImage(userId);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         [HttpGet("address")]
         public async Task<IActionResult> GetAddress()

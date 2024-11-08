@@ -11,6 +11,7 @@ namespace ITS_BE.Mapping
         public Mapping()
         {
             CreateMap<User, UserDTO>().ReverseMap();
+            CreateMap<User, ImageDTO>().ReverseMap();
             CreateMap<User, UserResponse>().ReverseMap();
             CreateMap<User, UserInfoRequest>().ReverseMap();
             CreateMap<DeliveryAddress, AddressDTO>().ReverseMap();

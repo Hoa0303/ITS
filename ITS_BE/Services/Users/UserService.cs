@@ -10,8 +10,10 @@ using ITS_BE.Repository.ProductRepository;
 using ITS_BE.Repository.UserRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
+using ITS_BE.Storage;
 using Microsoft.AspNetCore.Identity;
 using System.Linq.Expressions;
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace ITS_BE.Services.Users
 {
@@ -25,13 +27,16 @@ namespace ITS_BE.Services.Users
         private readonly IProductDetailRepository _productDetailRepository;
         private readonly IImageRepository _imageRepository;
         private readonly IDeliveryAddressRepository _deliveryAddressRepository;
+        private readonly IFileStorage _fileStorage;
         private readonly IMapper _mapper;
+        private readonly string path = "assets/images/avatar";
 
         public UserService(UserManager<User> userManager, IUserRepository userRepository,
             IDeliveryAddressRepository deliveryAddressRepository,
             IMapper mapper, IFavoriterRepository favoriterRepository,
             IProductRepository productRepository, IProductColorRepository productColorRepository,
-            IProductDetailRepository productDetailRepository, IImageRepository imageRepository)
+            IProductDetailRepository productDetailRepository, IImageRepository imageRepository,
+            IFileStorage fileStorage)
         {
             _userManager = userManager;
             _userRepository = userRepository;
@@ -39,6 +44,7 @@ namespace ITS_BE.Services.Users
             _productColorRepository = productColorRepository;
             _deliveryAddressRepository = deliveryAddressRepository;
             _favoriterRepository = favoriterRepository;
+            _fileStorage = fileStorage;
             _mapper = mapper;
             _productDetailRepository = productDetailRepository;
             _imageRepository = imageRepository;
@@ -229,6 +235,35 @@ namespace ITS_BE.Services.Users
                 PageSize = request.pageSize,
                 TotalItems = total
             };
+        }
+
+        public async Task<UserDTO> UpdateImage(string userId, IFormFile img)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                if (user.ImageUrl != null)
+                {
+                    _fileStorage.Delete(user.ImageUrl);
+                }
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(img.FileName);
+                user.ImageUrl = Path.Combine(path, fileName);
+                await _fileStorage.SaveAsync(path, img, fileName);
+
+                await _userManager.UpdateAsync(user);
+                return _mapper.Map<UserDTO>(user);
+            }
+            else { throw new ArgumentException(ErrorMessage.NOT_FOUND); }
+        }
+
+        public async Task<ImageDTO> GetImage(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                return _mapper.Map<ImageDTO>(user);
+            }
+            else { throw new ArgumentException(ErrorMessage.NOT_FOUND); }
         }
     }
 }
