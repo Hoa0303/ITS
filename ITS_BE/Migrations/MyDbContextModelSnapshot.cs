@@ -694,6 +694,58 @@ namespace ITS_BE.Migrations
                     b.ToTable("Reviews");
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.Role", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "81cf91ee-b4cc-4d44-b7b0-7139d0c7090f",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = "8c89ed81-1d50-401c-ab4b-079d99fbae6e",
+                            Name = "Employee",
+                            NormalizedName = "EMPLOYEE"
+                        },
+                        new
+                        {
+                            Id = "f91ab354-dca3-4a84-93a7-179ef3dec387",
+                            Name = "Stocker",
+                            NormalizedName = "STOCKER"
+                        },
+                        new
+                        {
+                            Id = "f3c0ea8e-b67f-4367-bd82-ae7caa953cb2",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
+                });
+
             modelBuilder.Entity("ITS_BE.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -769,32 +821,71 @@ namespace ITS_BE.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "d87f17f2-40c4-46da-abf5-b9113033257f",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "d0ff8533-ec61-429f-9dc7-2ae9360c3756",
+                            CreateAt = new DateTime(2024, 11, 13, 21, 34, 28, 76, DateTimeKind.Local).AddTicks(7113),
+                            Email = "hoab2005755@student.ctu.edu.vn",
+                            EmailConfirmed = false,
+                            FullName = "Nhựt Hòa",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "hoab2005755@student.ctu.edu.vn",
+                            NormalizedUserName = "hoab2005755@student.ctu.edu.vn",
+                            PhoneNumber = "0944990152",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "286a2f03-62b6-46c0-9526-334d9cd0be4f",
+                            TwoFactorEnabled = false,
+                            UserName = "hoab2005755@student.ctu.edu.vn"
+                        },
+                        new
+                        {
+                            Id = "6468b9c9-4d81-4bc9-868e-7fd7bb6b5576",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "6b46e339-a636-4f1f-8f4e-80dcda96e1ed",
+                            CreateAt = new DateTime(2024, 11, 13, 21, 34, 28, 76, DateTimeKind.Local).AddTicks(7133),
+                            Email = "lethinhachan18@gmail.com",
+                            EmailConfirmed = false,
+                            FullName = "Chân Chân",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "lethinhachan18@gmail.com",
+                            NormalizedUserName = "lethinhachan18@gmail.com",
+                            PhoneNumber = "0901089182",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "2a9378f0-c081-492b-ad5c-ed392ef94bd6",
+                            TwoFactorEnabled = false,
+                            UserName = "lethinhachan18@gmail.com"
+                        });
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+            modelBuilder.Entity("ITS_BE.Models.UserRole", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
+                    b.Property<string>("RoleId")
                         .HasColumnType("text");
 
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.HasKey("UserId", "RoleId");
 
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.HasIndex("RoleId");
 
-                    b.HasKey("Id");
+                    b.ToTable("AspNetUserRoles", (string)null);
 
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
-
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.HasData(
+                        new
+                        {
+                            UserId = "d87f17f2-40c4-46da-abf5-b9113033257f",
+                            RoleId = "81cf91ee-b4cc-4d44-b7b0-7139d0c7090f"
+                        },
+                        new
+                        {
+                            UserId = "6468b9c9-4d81-4bc9-868e-7fd7bb6b5576",
+                            RoleId = "8c89ed81-1d50-401c-ab4b-079d99fbae6e"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -867,21 +958,6 @@ namespace ITS_BE.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("AspNetUserLogins", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RoleId")
-                        .HasColumnType("text");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -1115,9 +1191,28 @@ namespace ITS_BE.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.UserRole", b =>
+                {
+                    b.HasOne("ITS_BE.Models.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ITS_BE.Models.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("ITS_BE.Models.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1135,21 +1230,6 @@ namespace ITS_BE.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("ITS_BE.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ITS_BE.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1210,6 +1290,11 @@ namespace ITS_BE.Migrations
                     b.Navigation("ReceiptDetails");
                 });
 
+            modelBuilder.Entity("ITS_BE.Models.Role", b =>
+                {
+                    b.Navigation("UserRoles");
+                });
+
             modelBuilder.Entity("ITS_BE.Models.User", b =>
                 {
                     b.Navigation("DeliveryAddress");
@@ -1221,6 +1306,8 @@ namespace ITS_BE.Migrations
                     b.Navigation("Receipts");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,7 +13,6 @@ using ITS_BE.Response;
 using ITS_BE.Storage;
 using Microsoft.AspNetCore.Identity;
 using System.Linq.Expressions;
-using static Org.BouncyCastle.Asn1.Cmp.Challenge;
 
 namespace ITS_BE.Services.Users
 {
@@ -54,6 +53,48 @@ namespace ITS_BE.Services.Users
         {
             int totalUser;
             IEnumerable<User> users;
+
+            if (string.IsNullOrEmpty(key))
+            {
+                totalUser = await _userRepository.CountAsync(e => e.UserRoles.Any(e => e.Role.Name == "Employee"));
+                users = await _userRepository.GetPagedOrderByDescendingAsync(page, pageSize,
+                    e => e.UserRoles.Any(e => e.Role.Name == "Employee"), e => e.CreateAt);
+            }
+            else
+            {
+                Expression<Func<User, bool>> expression = e => (e.Id.Contains(key)
+                    || (e.FullName != null && e.FullName.Contains(key))
+                    || (e.Email != null && e.Email.Contains(key))
+                    || e.PhoneNumber != null && e.PhoneNumber.Contains(key))
+                    && e.UserRoles.Any(e => e.Role.Name == "User");
+
+                totalUser = await _userRepository.CountAsync(expression);
+                users = await _userRepository.GetPagedOrderByDescendingAsync(page, pageSize, expression, e => e.CreateAt);
+            }
+
+            //var items = _mapper.Map<IEnumerable<UserResponse>>(users).Select(e =>
+            //{
+            //    e.LockedOut = e.LockoutEnd > DateTime.Now;
+            //    e.LockoutEnd = e.LockoutEnd > DateTime.Now ? e.LockoutEnd : null;
+            //    return e;
+            //});
+
+            //var roles = await _userManager.GetUsersInRoleAsync("User");
+            var items = _mapper.Map<IEnumerable<UserResponse>>(users);
+
+            return new PageRespone<UserResponse>
+            {
+                Items = items,
+                TotalItems = totalUser,
+                Page = page,
+                PageSize = pageSize,
+            };
+        }
+
+        public async Task<PageRespone<UserResponse>> GetEmployee(int page, int pageSize, string? key)
+        {
+            int totalUser;
+            IEnumerable<User> users;
             if (string.IsNullOrEmpty(key))
             {
                 totalUser = await _userRepository.CountAsync();
@@ -70,12 +111,25 @@ namespace ITS_BE.Services.Users
                 users = await _userRepository.GetPagedOrderByDescendingAsync(page, pageSize, expression, e => e.CreateAt);
             }
 
-            var items = _mapper.Map<IEnumerable<UserResponse>>(users).Select(e =>
+            //var items = _mapper.Map<IEnumerable<UserResponse>>(users).Select(e =>
+            //{
+            //    e.LockedOut = e.LockoutEnd > DateTime.Now;
+            //    e.LockoutEnd = e.LockoutEnd > DateTime.Now ? e.LockoutEnd : null;
+            //    return e;
+            //});
+            var items = new List<UserResponse>();
+
+            foreach (var user in users)
             {
-                e.LockedOut = e.LockoutEnd > DateTime.Now;
-                e.LockoutEnd = e.LockoutEnd > DateTime.Now ? e.LockoutEnd : null;
-                return e;
-            });
+                var roles = await _userManager.GetRolesAsync(user);
+
+                if (roles.Count > 0)
+                {
+                    var userResponse = _mapper.Map<UserResponse>(user);
+                    userResponse.Roles = roles;
+                    items.Add(userResponse);
+                }
+            }
 
             return new PageRespone<UserResponse>
             {

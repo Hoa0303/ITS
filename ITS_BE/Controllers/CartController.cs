@@ -30,6 +30,25 @@ namespace ITS_BE.Controllers
             }
         }
 
+        [HttpGet("count")]
+        public async Task<IActionResult> GetCountProductId()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var res = await _cartService.GetCountProductId(userId);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CartRequest cartRequest)
         {

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ITS_BE.Constants;
 using ITS_BE.Models;
 using ITS_BE.Request;
 using ITS_BE.Response;
@@ -95,10 +96,15 @@ namespace ITS_BE.Services.AuthSevices
                     NormalizedUserName = registerRequest.Email,
                     PhoneNumber = registerRequest.PhoneNumber,
                     FullName = registerRequest.Name,
-                    SecurityStamp = Guid.NewGuid().ToString(),
                     ConcurrencyStamp = Guid.NewGuid().ToString(),
                 };
-                return await _userManager.CreateAsync(user, registerRequest.Password);
+                var result = await _userManager.CreateAsync(user, registerRequest.Password);
+                if (!result.Succeeded)
+                {
+                    throw new Exception(ErrorMessage.INVALID);
+                }
+                await _userManager.AddToRoleAsync(user, "User");
+                return IdentityResult.Success;
             }
             else throw new Exception("Invalid reset token");
             //var result = await _userManager.CreateAsync(user, registerRequest.Password);

@@ -6,6 +6,7 @@
         public string? Description { get; set; }
         public int Start {  get; set; }
         public string FullName { get; set; }
+        public string? ImageUrl { get; set; }
         public DateTime createAt { get; set; }
     }
 }

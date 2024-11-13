@@ -1,4 +1,5 @@
 ﻿using ITS_BE.Data;
+using ITS_BE.Enumerations;
 using ITS_BE.Models;
 using ITS_BE.Repository.CommonRepository;
 using ITS_BE.Response;
@@ -35,7 +36,7 @@ namespace ITS_BE.Repository.OrderRepository
         => month == null
             ? await _dbContext.Orders
                 .Where(e => e.ReceivedDate.Year == year &&
-                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                  (e.OrderStatus == DeliveryStatusEnum.Received || e.OrderStatus == DeliveryStatusEnum.Done))
                 .GroupBy(e => new { e.ReceivedDate.Month, e.ReceivedDate.Year })
                 .Select(g => new StatisticData
                 {
@@ -44,7 +45,7 @@ namespace ITS_BE.Repository.OrderRepository
                 }).ToArrayAsync()
             : await _dbContext.Orders
                 .Where(e => e.ReceivedDate.Year == year && e.ReceivedDate.Month == month &&
-                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                  (e.OrderStatus == DeliveryStatusEnum.Received || e.OrderStatus == DeliveryStatusEnum.Done))
                 .GroupBy(e => new { e.ReceivedDate.Day, e.ReceivedDate.Month })
                 .Select(g => new StatisticData
                 {
@@ -56,7 +57,7 @@ namespace ITS_BE.Repository.OrderRepository
         {
             return await _dbContext.Orders
                 .Where(e => e.ReceivedDate >= dateFrom && e.ReceivedDate <= dateTo.AddDays(1) &&
-                    (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                    (e.OrderStatus == DeliveryStatusEnum.Received || e.OrderStatus == DeliveryStatusEnum.Done))
                 .GroupBy(e => new { e.ReceivedDate.Date })
                 .Select(g => new StatisticDateData
                 {
@@ -69,7 +70,7 @@ namespace ITS_BE.Repository.OrderRepository
         => month == null
             ? await _dbContext.Orders
             .Where(e => e.ReceivedDate.Year == year &&
-                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                  (e.OrderStatus == DeliveryStatusEnum.Received || e.OrderStatus == DeliveryStatusEnum.Done))
             .SelectMany(r => r.OrderDetials)
             .Where(e => e.ProductId == productId)
             .GroupBy(e => e.Order.ReceivedDate.Month)
@@ -80,7 +81,7 @@ namespace ITS_BE.Repository.OrderRepository
             }).ToArrayAsync()
             : await _dbContext.Orders
             .Where(e => e.ReceivedDate.Year == year && e.ReceivedDate.Month == month &&
-                  (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                  (e.OrderStatus == DeliveryStatusEnum.Received || e.OrderStatus == DeliveryStatusEnum.Done))
             .SelectMany(r => r.OrderDetials)
             .Where(e => e.ProductId == productId)
             .GroupBy(e => e.Order.ReceivedDate.Day)
@@ -94,7 +95,7 @@ namespace ITS_BE.Repository.OrderRepository
         {
             return await _dbContext.Orders
                 .Where(e => e.ReceivedDate >= dateFrom && e.ReceivedDate <= dateTo.AddDays(1) &&
-                    (e.OrderStatus == Enum.DeliveryStatusEnum.Received || e.OrderStatus == Enum.DeliveryStatusEnum.Done))
+                    (e.OrderStatus == DeliveryStatusEnum.Received || e.OrderStatus == DeliveryStatusEnum.Done))
                 .SelectMany(s => s.OrderDetials)
                 .Where(e => e.ProductId == productId)
                 .GroupBy(gb => gb.Order.ReceivedDate.Date)

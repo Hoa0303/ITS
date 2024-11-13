@@ -1,4 +1,4 @@
-﻿using ITS_BE.Enum;
+﻿using ITS_BE.Enumerations;
 using System.ComponentModel.DataAnnotations;
 
 namespace ITS_BE.Request

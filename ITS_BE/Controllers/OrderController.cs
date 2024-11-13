@@ -1,4 +1,4 @@
-﻿using ITS_BE.Enum;
+﻿using ITS_BE.Enumerations;
 using ITS_BE.Request;
 using ITS_BE.Services.Orders;
 using Microsoft.AspNetCore.Authorization;

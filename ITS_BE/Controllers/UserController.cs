@@ -30,6 +30,20 @@ namespace ITS_BE.Controllers
             }
         }
 
+        [HttpGet("employee")]
+        [Authorize(Roles ="Admin")]
+        public async Task<IActionResult> GetEmployee([FromQuery] PageResquest resquest)
+        {
+            try
+            {
+                return Ok(await _userService.GetEmployee(resquest.page, resquest.pageSize, resquest.search));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
 
         [HttpPut("lock-out/{id}")]
         [Authorize(Roles = "Admin")]

@@ -1,5 +1,4 @@
-﻿
-using ITS_BE.Enum;
+﻿using ITS_BE.Enumerations;
 
 namespace ITS_BE.Models
 {
@@ -32,7 +31,7 @@ namespace ITS_BE.Models
         public string? ShippingCode { get; set; }
         public DateTime? Expected_delivery_time { get; set; }
 
-        public DeliveryStatusEnum? OrderStatus { get; set; } = DeliveryStatusEnum.Proccessing;
+        public DeliveryStatusEnum? OrderStatus { get; set; } = DeliveryStatusEnum.Processing;
 
         public DateTime CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }

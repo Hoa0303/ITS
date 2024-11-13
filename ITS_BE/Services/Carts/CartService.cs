@@ -103,6 +103,12 @@ namespace ITS_BE.Services.Carts
             return res;
         }
 
+        public async Task<IEnumerable<int>> GetCountProductId(string userId)
+        {
+            var cart = await _cartItemRepository.GetAsync(e => e.UserId == userId);
+            return cart.Select(e => e.ProductId);
+        }
+
         public async Task<CartItemResponse> UpdateCartItem(string cartId, string userId, UpdateCartItemRequest request)
         {
             try

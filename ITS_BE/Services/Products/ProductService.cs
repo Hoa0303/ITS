@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using ITS_BE.Constants;
 using ITS_BE.DTO;
-using ITS_BE.Enum;
+using ITS_BE.Enumerations;
 using ITS_BE.Models;
 using ITS_BE.Repository.ImageRepository;
 using ITS_BE.Repository.ProductColorRepository;

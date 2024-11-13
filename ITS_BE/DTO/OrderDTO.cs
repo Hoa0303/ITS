@@ -1,4 +1,4 @@
-﻿using ITS_BE.Enum;
+﻿using ITS_BE.Enumerations;
 
 namespace ITS_BE.DTO
 {

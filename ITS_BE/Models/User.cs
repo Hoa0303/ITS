@@ -14,5 +14,7 @@ namespace ITS_BE.Models
         public ICollection<Receipt> Receipts { get; } = new HashSet<Receipt>();
         public ICollection<Favorite> Favorites { get; } = new HashSet<Favorite>();
         public ICollection<Review> Reviews { get; } = new HashSet<Review>();
+
+        public virtual ICollection<UserRole> UserRoles { get; }
     }
 }

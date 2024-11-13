@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using ITS_BE.Constants;
 using ITS_BE.DTO;
-using ITS_BE.Enum;
+using ITS_BE.Enumerations;
 using ITS_BE.Library;
 using ITS_BE.Models;
 using ITS_BE.ModelView;
@@ -336,7 +336,7 @@ namespace ITS_BE.Services.Orders
             var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId && e.UserId == userId);
             if (order != null)
             {
-                if (order.OrderStatus.Equals(DeliveryStatusEnum.Proccessing)
+                if (order.OrderStatus.Equals(DeliveryStatusEnum.Processing)
                     || order.OrderStatus.Equals(DeliveryStatusEnum.Confirmed))
                 {
                     order.OrderStatus = DeliveryStatusEnum.Canceled;
@@ -388,7 +388,7 @@ namespace ITS_BE.Services.Orders
             var order = await _orderRepository.SingleOrDefaultAsync(e => e.Id == orderId);
             if (order != null)
             {
-                if (order.OrderStatus.Equals(DeliveryStatusEnum.Proccessing)
+                if (order.OrderStatus.Equals(DeliveryStatusEnum.Processing)
                     || order.OrderStatus.Equals(DeliveryStatusEnum.Confirmed))
                 {
                     order.OrderStatus = DeliveryStatusEnum.Canceled;
@@ -540,7 +540,7 @@ namespace ITS_BE.Services.Orders
 
             Expression<Func<Order, DateTime?>> sortExpression = e => e.CreateAt;
 
-            if (statusEnum == DeliveryStatusEnum.Proccessing)
+            if (statusEnum == DeliveryStatusEnum.Processing)
             {
                 sortExpression = e => e.CreateAt;
             }
@@ -581,7 +581,7 @@ namespace ITS_BE.Services.Orders
 
             Expression<Func<Order, DateTime?>> sortExpression = e => e.CreateAt;
 
-            if (statusEnum == DeliveryStatusEnum.Proccessing)
+            if (statusEnum == DeliveryStatusEnum.Processing)
             {
                 sortExpression = e => e.CreateAt;
             }

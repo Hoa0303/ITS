@@ -1,4 +1,5 @@
 using ITS_BE.Data;
+using ITS_BE.DataSeeding;
 using ITS_BE.Library;
 using ITS_BE.Mapping;
 using ITS_BE.Models;
@@ -85,12 +86,13 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-builder.Services.AddIdentity<User, IdentityRole>(opt =>
+builder.Services.AddIdentity<User, Role>(opt =>
 {
     opt.Password.RequireNonAlphanumeric = false;
     opt.Password.RequiredLength = 6;
     opt.User.RequireUniqueEmail = true;
-}).AddEntityFrameworkStores<MyDbContext>().AddDefaultTokenProviders();
+}).AddEntityFrameworkStores<MyDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(opt =>
 {
@@ -160,12 +162,15 @@ builder.Services.AddScoped<IVNPayLibrary, VNPayLibrary>();
 
 var app = builder.Build();
 
+DataSeeding.Initialize(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 
 app.UseHttpsRedirection();
 app.UseDefaultFiles();

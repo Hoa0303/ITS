@@ -1,4 +1,5 @@
 ﻿
+using ITS_BE.Enumerations;
 using ITS_BE.Models;
 using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Repository.ProductRepository;
@@ -36,7 +37,7 @@ namespace ITS_BE.Services.Statistics
         public async Task<int> GetCountOrder()
         {
             var total = await _orderRepository
-                .CountAsync(e => e.OrderStatus == Enum.DeliveryStatusEnum.Done || e.OrderStatus == Enum.DeliveryStatusEnum.Received);
+                .CountAsync(e => e.OrderStatus == DeliveryStatusEnum.Done || e.OrderStatus == DeliveryStatusEnum.Received);
             return total;
         }
 

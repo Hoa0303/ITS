@@ -8,6 +8,7 @@ namespace ITS_BE.Response
         public string FullName { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
+        public IEnumerable<string> Roles { get; set; }
         public bool LockedOut { get; set; }
         public DateTimeOffset? LockoutEnd { get; set; }
         public DateTime CreateAt { get; set; }

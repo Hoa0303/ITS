@@ -76,7 +76,8 @@ namespace ITS_BE.Mapping
             CreateMap<ReceiptDetail, ReceiptDetailResponse>();
 
             CreateMap<Review, ReviewDTO>()
-                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName));
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.User.ImageUrl));
 
             CreateMap<Log, ReceiptDTO>();
             CreateMap<LogDetail, ReceiptDetailResponse>();
