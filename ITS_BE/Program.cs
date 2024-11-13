@@ -162,7 +162,7 @@ builder.Services.AddScoped<IVNPayLibrary, VNPayLibrary>();
 
 var app = builder.Build();
 
-DataSeeding.Initialize(app.Services);
+DataSeeding.Initialize(app.Services).Wait();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

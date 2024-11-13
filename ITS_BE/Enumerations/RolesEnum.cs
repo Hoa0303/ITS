@@ -5,6 +5,7 @@
         Admin,
         Employee,
         Stocker,
+        Statist,
         User
     }
 }

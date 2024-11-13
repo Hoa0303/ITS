@@ -79,7 +79,7 @@ namespace ITS_BE.Services.AuthSevices
                 }
                 throw new Exception("User not found");
             }
-            else throw new ArgumentException("User not found");
+            else throw new ArgumentException("Password incorrect");
         }
 
         public async Task<IdentityResult> Register(RegisterRequest registerRequest)

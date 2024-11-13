@@ -718,32 +718,6 @@ namespace ITS_BE.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "81cf91ee-b4cc-4d44-b7b0-7139d0c7090f",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "8c89ed81-1d50-401c-ab4b-079d99fbae6e",
-                            Name = "Employee",
-                            NormalizedName = "EMPLOYEE"
-                        },
-                        new
-                        {
-                            Id = "f91ab354-dca3-4a84-93a7-179ef3dec387",
-                            Name = "Stocker",
-                            NormalizedName = "STOCKER"
-                        },
-                        new
-                        {
-                            Id = "f3c0ea8e-b67f-4367-bd82-ae7caa953cb2",
-                            Name = "User",
-                            NormalizedName = "USER"
-                        });
                 });
 
             modelBuilder.Entity("ITS_BE.Models.User", b =>
@@ -821,44 +795,6 @@ namespace ITS_BE.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "d87f17f2-40c4-46da-abf5-b9113033257f",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "d0ff8533-ec61-429f-9dc7-2ae9360c3756",
-                            CreateAt = new DateTime(2024, 11, 13, 21, 34, 28, 76, DateTimeKind.Local).AddTicks(7113),
-                            Email = "hoab2005755@student.ctu.edu.vn",
-                            EmailConfirmed = false,
-                            FullName = "Nhựt Hòa",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "hoab2005755@student.ctu.edu.vn",
-                            NormalizedUserName = "hoab2005755@student.ctu.edu.vn",
-                            PhoneNumber = "0944990152",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "286a2f03-62b6-46c0-9526-334d9cd0be4f",
-                            TwoFactorEnabled = false,
-                            UserName = "hoab2005755@student.ctu.edu.vn"
-                        },
-                        new
-                        {
-                            Id = "6468b9c9-4d81-4bc9-868e-7fd7bb6b5576",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "6b46e339-a636-4f1f-8f4e-80dcda96e1ed",
-                            CreateAt = new DateTime(2024, 11, 13, 21, 34, 28, 76, DateTimeKind.Local).AddTicks(7133),
-                            Email = "lethinhachan18@gmail.com",
-                            EmailConfirmed = false,
-                            FullName = "Chân Chân",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "lethinhachan18@gmail.com",
-                            NormalizedUserName = "lethinhachan18@gmail.com",
-                            PhoneNumber = "0901089182",
-                            PhoneNumberConfirmed = true,
-                            SecurityStamp = "2a9378f0-c081-492b-ad5c-ed392ef94bd6",
-                            TwoFactorEnabled = false,
-                            UserName = "lethinhachan18@gmail.com"
-                        });
                 });
 
             modelBuilder.Entity("ITS_BE.Models.UserRole", b =>
@@ -874,18 +810,6 @@ namespace ITS_BE.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = "d87f17f2-40c4-46da-abf5-b9113033257f",
-                            RoleId = "81cf91ee-b4cc-4d44-b7b0-7139d0c7090f"
-                        },
-                        new
-                        {
-                            UserId = "6468b9c9-4d81-4bc9-868e-7fd7bb6b5576",
-                            RoleId = "8c89ed81-1d50-401c-ab4b-079d99fbae6e"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
