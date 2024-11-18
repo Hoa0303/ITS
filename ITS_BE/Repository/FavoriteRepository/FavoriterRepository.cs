@@ -14,17 +14,17 @@ namespace ITS_BE.Repository.FavoriteRepository
         public override async Task<IEnumerable<Favorite>> GetPagedAsync<TKey>(int page, int pageSize, Expression<Func<Favorite, bool>>? expression, Expression<Func<Favorite, TKey>> orderBy)
        => expression == null
            ? await _dbcontext.Favorites
+               .OrderBy(orderBy)
                .Paginate(page, pageSize)
                .Include(e => e.Product)
-                   .ThenInclude(e => e.Images)
-               .OrderBy(orderBy)
+                   .ThenInclude(e => e.Images)               
                .ToArrayAsync()
            : await _dbcontext.Favorites
                .Where(expression)
+               .OrderBy(orderBy)
                .Paginate(page, pageSize)
                .Include(e => e.Product)
-                   .ThenInclude(e => e.Images)
-               .OrderBy(orderBy)
+                   .ThenInclude(e => e.Images)               
                .ToArrayAsync();
     }
 }

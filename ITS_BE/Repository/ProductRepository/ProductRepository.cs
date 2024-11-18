@@ -26,7 +26,7 @@ namespace ITS_BE.Repository.ProductRepository
                 .Where(e => e.Name.Contains(search) || e.Id.ToString().Equals(search))
                 .Include(e => e.Brand)
                 .Include(e => e.Category)
-                .OrderByDescending(e => e.CreateAt)
+                .OrderBy(e => e.Name)
                 .Paginate(page, pageSize)
                 .ToListAsync();
         }
@@ -36,8 +36,18 @@ namespace ITS_BE.Repository.ProductRepository
             return await _context.Products
                 .Include(e => e.Brand)
                 .Include(e => e.Category)
-                .Paginate(page, pageSize)
                 .OrderBy(e => e.Name)
+                .Paginate(page, pageSize)                
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Product>> OrderByDescendingBySold(int page, int pageSize)
+        {
+            return await _context.Products
+                .Include(e => e.Brand)
+                .Include(e => e.Category)
+                .OrderByDescending(e => e.Sold)
+                .Paginate(page, pageSize)
                 .ToListAsync();
         }
 

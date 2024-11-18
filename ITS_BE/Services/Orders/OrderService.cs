@@ -347,14 +347,19 @@ namespace ITS_BE.Services.Orders
 
                     foreach (var item in orderDetail)
                     {
-                        var color = await _productColorRepository
-                            .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+                        if (item.ProductId != null)
+                        {
+                            var color = await _productColorRepository
+                                .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+                            if(color != null)
+                            {
+                                item.Product.Sold -= item.Quantity;
+                                listProductUpdate.Add(item.Product);
 
-                        item.Product.Sold -= item.Quantity;
-                        listProductUpdate.Add(item.Product);
-
-                        color.Quantity += item.Quantity;
-                        listProductColorUpdate.Add(color);
+                                color.Quantity += item.Quantity;
+                                listProductColorUpdate.Add(color);
+                            }    
+                        }               
                     }
 
                     _cachingService.Remove("Order " + orderId);
@@ -401,12 +406,15 @@ namespace ITS_BE.Services.Orders
                     {
                         var color = await _productColorRepository
                             .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+                        if(color != null)
+                        {
+                            item.Product.Sold -= item.Quantity;
+                            listProductUpdate.Add(item.Product);
 
-                        item.Product.Sold -= item.Quantity;
-                        listProductUpdate.Add(item.Product);
-
-                        color.Quantity += item.Quantity;
-                        listProductColorUpdate.Add(color);
+                            color.Quantity += item.Quantity;
+                            listProductColorUpdate.Add(color);
+                        }
+                        else continue;                        
                     }
                     _cachingService.Remove("Order " + orderId);
                     await _orderRepository.UpdateAsync(order);
@@ -519,9 +527,14 @@ namespace ITS_BE.Services.Orders
                         });
                     }
                 }
-
-                await _productRepository.UpdateAsync(products);
-                await _reviewRepository.AddAsync(pReview);
+                if (products.Any())
+                {
+                    await _productRepository.UpdateAsync(products);
+                }
+                if (pReview.Any())
+                {
+                    await _reviewRepository.AddAsync(pReview);
+                }
                 order.Reviewed = true;
                 await _orderRepository.UpdateAsync(order);
             }

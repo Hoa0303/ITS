@@ -1,4 +1,7 @@
-﻿namespace ITS_BE.Models
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+
+namespace ITS_BE.Models
 {
     public class OrderDetail
     {
@@ -8,9 +11,12 @@
         public Order Order { get; set; }
 
         public int? ProductId { get; set; }
+        [DeleteBehavior(DeleteBehavior.SetNull)]
         public Product? Product { get; set; }
+        [MaxLength(50)]
         public string ProductName { get; set; }
 
+        [MaxLength(20)]
         public string ColorName { get; set; }
         public int ColorId { get; set; }
 

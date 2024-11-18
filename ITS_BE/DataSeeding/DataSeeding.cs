@@ -89,6 +89,18 @@ namespace ITS_BE.DataSeeding
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
+            var statistEmail = "lengoc14082002@gmail.com";
+            var statist = new User
+            {
+                FullName = "Hồng Ngọc",
+                Email = statistEmail,
+                NormalizedEmail = statistEmail.ToUpper(),
+                UserName = statistEmail,
+                NormalizedUserName = statistEmail.ToUpper(),
+                PhoneNumber = "0946633248",
+                SecurityStamp = Guid.NewGuid().ToString(),
+            };
+
             if (!context.Users.Any(u => u.UserName == admin.UserName))
             {
                 var result = await userManager.CreateAsync(admin, "Hoa123");
@@ -111,6 +123,14 @@ namespace ITS_BE.DataSeeding
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(stocker, RolesEnum.Stocker.ToString());
+                }
+            }
+            if (!context.Users.Any(u => u.UserName == statist.UserName))
+            {
+                var result = await userManager.CreateAsync(statist, "Hoa123");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(statist, RolesEnum.Statist.ToString());
                 }
             }
 

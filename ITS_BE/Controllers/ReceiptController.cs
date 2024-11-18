@@ -14,7 +14,7 @@ namespace ITS_BE.Controllers
         private readonly IReceiptService _receiptService = receiptService;
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> Create([FromBody] ReceiptRequest request)
         {
             try
@@ -34,7 +34,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> UpdateRecipte(long id, [FromBody] ReceiptRequest request)
         {
             try
@@ -49,7 +49,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> GetAll([FromQuery] PageResquest request)
         {
             try
@@ -65,7 +65,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> GetById(long id)
         {
             try

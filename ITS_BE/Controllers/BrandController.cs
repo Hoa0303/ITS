@@ -33,7 +33,8 @@ namespace ITS_BE.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
+
         public async Task<ActionResult> CreateBrand([FromForm] NameRequest request, [FromForm] IFormFileCollection files)
         {
             try
@@ -50,7 +51,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult> UpdateBrand(int id, [FromForm] NameRequest request, [FromForm] IFormCollection files)
         {
             try
@@ -71,7 +72,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> DeletaBrand(int id)
         {
             try

@@ -14,7 +14,7 @@ namespace ITS_BE.Controllers
         private readonly ILogService _logService = logService;
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> GetAll([FromQuery] PageResquest request)
         {
             try
@@ -29,7 +29,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> GetById(long id)
         {
             try

@@ -1,4 +1,5 @@
 ﻿using ITS_BE.DTO;
+using ITS_BE.Enumerations;
 using ITS_BE.Request;
 using ITS_BE.Services.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -18,32 +19,17 @@ namespace ITS_BE.Controllers
         }
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllUser([FromQuery] PageResquest resquest)
+        public async Task<IActionResult> GetAllUser([FromQuery] PageResquest resquest, [FromQuery] RolesEnum role)
         {
             try
             {
-                return Ok(await _userService.GetAllAsync(resquest.page, resquest.pageSize, resquest.search));
+                return Ok(await _userService.GetAllAsync(resquest.page, resquest.pageSize, resquest.search, role));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
         }
-
-        [HttpGet("employee")]
-        [Authorize(Roles ="Admin")]
-        public async Task<IActionResult> GetEmployee([FromQuery] PageResquest resquest)
-        {
-            try
-            {
-                return Ok(await _userService.GetEmployee(resquest.page, resquest.pageSize, resquest.search));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
 
         [HttpPut("lock-out/{id}")]
         [Authorize(Roles = "Admin")]

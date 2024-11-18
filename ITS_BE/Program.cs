@@ -16,6 +16,7 @@ using ITS_BE.Repository.ProductDetailRepository;
 using ITS_BE.Repository.ProductRepository;
 using ITS_BE.Repository.ReceiptRepository;
 using ITS_BE.Repository.ReviewRepository;
+using ITS_BE.Repository.TransactionRepository;
 using ITS_BE.Repository.UserRepository;
 using ITS_BE.Services.AuthSevices;
 using ITS_BE.Services.Brands;
@@ -139,6 +140,7 @@ builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IStatisticService, StatisticService>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IDeliveryAddressRepository, DeliveryAddressRepository>();
 builder.Services.AddScoped<IProductColorRepository, ProductColorRepository>();
 builder.Services.AddScoped<IProductDetailRepository, ProductDetailRepository>();

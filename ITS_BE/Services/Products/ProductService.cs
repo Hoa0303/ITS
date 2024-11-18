@@ -107,8 +107,8 @@ namespace ITS_BE.Services.Products
             var product = await _productRepository.FindAsync(id);
             if (product != null)
             {
-                var images = await _imageRepository.GetImageProductAsync(id);
-                _fileStorage.Delete(images.Select(image => image.ImageUrl));
+                //var images = await _imageRepository.GetImageProductAsync(id);
+                //_fileStorage.Delete(images.Select(image => image.ImageUrl));
 
                 await _productRepository.DeleteAsync(product);
             }
@@ -165,6 +165,46 @@ namespace ITS_BE.Services.Products
             {
                 throw new Exception(ex.InnerException?.Message ?? ex.Message);
             }
+        }
+
+        public async Task<PageRespone<ProductDTO>> OrderByDescendingBySold(int page, int pageSize)
+        {
+            int totalProduct;
+            IEnumerable<Product> products;
+
+            totalProduct = await _productRepository.CountAsync();
+            products = await _productRepository.OrderByDescendingBySold(page, pageSize);
+
+            var res = _mapper.Map<IEnumerable<ProductDTO>>(products);
+            foreach (var product in res)
+            {
+                var image = await _imageRepository.GetFirstByProductAsync(product.Id);
+                if (image != null)
+                {
+                    product.ImageUrl = image.ImageUrl;
+                }
+                var color = await _productColorRepository.GetFirstColorByProductAsync(product.Id);
+                if (color != null)
+                {
+                    product.Price = color.Prices;
+                }
+                var detail = (await _productDetailRepository.GetDetailProductAsync(product.Id)).FirstOrDefault();
+                if (detail != null)
+                {
+                    product.SizeScreen = detail.SizeScreen;
+                    product.Ram = detail.Ram;
+                    product.Rom = detail.Rom;
+                    product.Cpu = detail.Cpu;
+                }
+            }
+            return new PageRespone<ProductDTO>
+            {
+                Items = res,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalProduct
+            };
+
         }
 
         private Expression<Func<T, bool>> CombineExpressions<T>(Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)

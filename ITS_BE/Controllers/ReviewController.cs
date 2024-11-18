@@ -12,7 +12,7 @@ namespace ITS_BE.Controllers
         private readonly IReviewService _reviewService = reviewService;
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> DeleteReview(string id)
         {
             try

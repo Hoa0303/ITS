@@ -1,8 +1,11 @@
-﻿namespace ITS_BE.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ITS_BE.Models
 {
     public class Log : IBaseEntity
     {
         public long Id { get; set; }
+        [MaxLength(100)]
         public string? Note { get; set; }
         public double Total { get; set; }
         public DateTime EntryDate { get; set; }

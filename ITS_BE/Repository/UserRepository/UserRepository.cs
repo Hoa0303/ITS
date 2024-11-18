@@ -15,15 +15,15 @@ namespace ITS_BE.Repository.UserRepository
         public override async Task<IEnumerable<User>> GetPagedOrderByDescendingAsync<TKey>(int page, int pageSize, Expression<Func<User, bool>>? expression, Expression<Func<User, TKey>> orderByDesc)
         => expression == null
             ? await _dbContext.Users
-                .Paginate(page, pageSize)
                 .OrderByDescending(orderByDesc)
+                .Paginate(page, pageSize)                
                 .Include(x => x.UserRoles)
                     .ThenInclude(e => e.Role)
                 .ToArrayAsync()
             : await _dbContext.Users
                 .Where(expression)
-                .Paginate(page, pageSize)
                 .OrderByDescending(orderByDesc)
+                .Paginate(page, pageSize)
                 .Include(x => x.UserRoles)
                     .ThenInclude(e => e.Role)
                 .ToArrayAsync();

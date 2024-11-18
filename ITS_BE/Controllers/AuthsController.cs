@@ -1,7 +1,9 @@
 ﻿using ITS_BE.Request;
 using ITS_BE.Services.AuthSevices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ITS_BE.Controllers
 {
@@ -39,6 +41,52 @@ namespace ITS_BE.Controllers
             {
                 var result = await _authService.Register(registerRequest);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("create")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateUser([FromBody] UserRequest request)
+        {
+            try
+            {
+                var res = await _authService.CreateUser(request);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpPut("update/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateRequest request)
+        {
+            try
+            {
+                var res = await _authService.UpdateUser(id, request);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUser(string id)
+        {
+            try
+            {
+                var res = await _authService.GetUser(id);
+                return Ok(res);
             }
             catch (Exception ex)
             {

@@ -144,20 +144,24 @@ namespace ITS_BE.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("District_name")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
 
                     b.Property<int?>("Province_code")
                         .HasColumnType("integer");
 
                     b.Property<string>("Province_name")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime?>("UpdateAt")
                         .HasColumnType("timestamp without time zone");
@@ -166,7 +170,8 @@ namespace ITS_BE.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Ward_name")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("UserId");
 
@@ -237,7 +242,8 @@ namespace ITS_BE.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Note")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long>("ReceiptId")
                         .HasColumnType("bigint");
@@ -268,7 +274,8 @@ namespace ITS_BE.Migrations
 
                     b.Property<string>("ColorName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<double>("CostPrice")
                         .HasColumnType("double precision");
@@ -278,7 +285,8 @@ namespace ITS_BE.Migrations
 
                     b.Property<string>("ProductName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -306,7 +314,8 @@ namespace ITS_BE.Migrations
 
                     b.Property<string>("DeliveryAddress")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("DistrictId")
                         .HasColumnType("integer");
@@ -332,14 +341,16 @@ namespace ITS_BE.Migrations
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
 
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Receiver")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<bool>("Reviewed")
                         .HasColumnType("boolean");
@@ -382,7 +393,8 @@ namespace ITS_BE.Migrations
 
                     b.Property<string>("ColorName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
@@ -402,7 +414,8 @@ namespace ITS_BE.Migrations
 
                     b.Property<string>("ProductName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -429,7 +442,8 @@ namespace ITS_BE.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.HasKey("Id");
 
@@ -609,7 +623,8 @@ namespace ITS_BE.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Note")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<double>("Total")
                         .HasColumnType("double precision");
@@ -641,8 +656,12 @@ namespace ITS_BE.Migrations
                     b.Property<double>("CostPrice")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int?>("ProductId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -1008,7 +1027,8 @@ namespace ITS_BE.Migrations
 
                     b.HasOne("ITS_BE.Models.Product", "Product")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Order");
 
@@ -1084,8 +1104,7 @@ namespace ITS_BE.Migrations
                     b.HasOne("ITS_BE.Models.Product", "Product")
                         .WithMany("ReceiptDetails")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ITS_BE.Models.Receipt", "Receipt")
                         .WithMany("ReceiptDetails")

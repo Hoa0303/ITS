@@ -1,4 +1,5 @@
 ﻿using ITS_BE.DTO;
+using ITS_BE.Enumerations;
 using ITS_BE.Request;
 using ITS_BE.Response;
 using System.Threading.Tasks;
@@ -7,8 +8,7 @@ namespace ITS_BE.Services.Users
 {
     public interface IUserService
     {
-        Task<PageRespone<UserResponse>> GetAllAsync(int page, int pageSize, string? key);
-        Task<PageRespone<UserResponse>> GetEmployee(int page, int pageSize, string? key);
+        Task<PageRespone<UserResponse>> GetAllAsync(int page, int pageSize, string? key, RolesEnum role);
         Task<UserDTO> GetUserInfo(string userId);
         Task<UserInfoRequest> UpdateUserInfo(string userId, UserInfoRequest request);
         Task<UserDTO> UpdateImage(string userId, IFormFile img);

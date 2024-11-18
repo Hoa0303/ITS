@@ -9,6 +9,9 @@ namespace ITS_BE.Services.AuthSevices
     {
         Task<JwtResponse> Login(LoginRequest loginRequest);
         Task<IdentityResult> Register(RegisterRequest registerRequest);
+        Task<UserDTO> CreateUser(UserRequest request);
+        Task<UserDTO> UpdateUser(string userId, UserUpdateRequest request);
+        Task<UserDTO> GetUser(string userId);
         Task<bool> SendCode(string email);
         Task<bool> SendPasswordResetTokenAsync(string email);
         Task<bool> ResetPasswordAsync(string email, string token, string newPassword);

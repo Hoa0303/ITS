@@ -74,7 +74,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpGet("status/{status}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee,Statist")]
         public async Task<IActionResult> GetOrderWithStatus(DeliveryStatusEnum status, [FromQuery] PageResquest resquest)
         {
             try
@@ -110,7 +110,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpGet("get-all")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee,Statist")]
         public async Task<IActionResult> GetAll([FromQuery] PageResquest request)
         {
             try
@@ -125,7 +125,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> UpdateStatus(long id)
         {
             try
@@ -145,7 +145,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpPut("shipping/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> ShippingOrder(long id, OrderShippingRequest request)
         {
             try
@@ -169,7 +169,7 @@ namespace ITS_BE.Controllers
             try
             {
                 var role = User.FindAll(ClaimTypes.Role).Select(e => e.Value);
-                var admin = role.Contains("Admin");
+                var admin = role.Any(e=>e.Equals("Admin") || e.Equals("Statist") || e.Equals("Employee") );
                 if (admin)
                 {
                     var order = await _orderService.GetOrderDetail(id);
@@ -262,6 +262,6 @@ namespace ITS_BE.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+
     }
 }

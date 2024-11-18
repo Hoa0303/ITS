@@ -1,4 +1,5 @@
 ﻿using ITS_BE.Enumerations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ITS_BE.Models
 {
@@ -9,11 +10,14 @@ namespace ITS_BE.Models
         public DateTime OrderDate { get; set; }
         public DateTime ReceivedDate {  get; set; }
 
+        [MaxLength(100)]
         public string DeliveryAddress { get; set; }
         public int DistrictId { get; set; } //for GHN
         public string WardCode { get; set; } //for GHN
 
+        [MaxLength(50)]
         public string Receiver { get; set; }
+        [MaxLength(15)]
         public string PhoneNumber { get; set; }
         
         public double AmountPaid { get; set; }

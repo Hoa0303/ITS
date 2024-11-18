@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using ITS_BE.Constants;
+using ITS_BE.DTO;
 using ITS_BE.Models;
+using ITS_BE.Repository.TransactionRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
 using ITS_BE.Services.Caching;
@@ -18,14 +20,18 @@ namespace ITS_BE.Services.AuthSevices
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _config;
+        private readonly ITransactionRepository _transactionRepository;
         private readonly IMapper _mapper;
         private readonly ISendEmailService _sendEmailService;
         private readonly ICachingService _cachingService;
 
-        public AuthService(SignInManager<User> signInManager, UserManager<User> userManager, IConfiguration config, IMapper mapper, ICachingService caching, ISendEmailService sendEmail)
+        public AuthService(SignInManager<User> signInManager, UserManager<User> userManager,
+            IConfiguration config, IMapper mapper, ICachingService caching,
+            ISendEmailService sendEmail, ITransactionRepository transactionRepository)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _transactionRepository = transactionRepository;
             _config = config;
             _mapper = mapper;
             _cachingService = caching;
@@ -113,6 +119,119 @@ namespace ITS_BE.Services.AuthSevices
             //    throw new Exception(string.Join(";", result.Errors.Select(e => e.Description)));
             //}
             //return _mapper.Map<UserDTO>(user);
+        }
+
+        public async Task<UserDTO> CreateUser(UserRequest request)
+        {
+            using (await _transactionRepository.BeginTransactionAsync())
+            {
+                try
+                {
+                    var user = new User()
+                    {
+                        Email = request.Email,
+                        NormalizedEmail = request.Email.ToUpper(),
+                        UserName = request.Email,
+                        NormalizedUserName = request.Email.ToUpper(),
+                        PhoneNumber = request.PhoneNumber,
+                        FullName = request.Fullname,
+                        SecurityStamp = Guid.NewGuid().ToString(),
+                        ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    };
+                    var res = await _userManager.CreateAsync(user, request.Password);
+                    if (!res.Succeeded)
+                    {
+                        throw new Exception(ErrorMessage.INVALID);
+                    }
+                    var roleRes = await _userManager.AddToRolesAsync(user, request.Roles);
+                    if (!roleRes.Succeeded)
+                    {
+                        throw new Exception(ErrorMessage.INVALID);
+                    }
+                    await _transactionRepository.CommitTransactionAsync();
+                    return new UserDTO
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        PhoneNumber = user.PhoneNumber,
+                        FullName = user.FullName,
+                    };
+                }
+                catch (Exception ex)
+                {
+                    await _transactionRepository.RollbackTransactionAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
+        public async Task<UserDTO> UpdateUser(string userId, UserUpdateRequest request)
+        {
+            using (await _transactionRepository.BeginTransactionAsync())
+            {
+                try
+                {
+                    var user = await _userManager.FindByIdAsync(userId);
+                    if (user == null)
+                    {
+                        throw new Exception(ErrorMessage.NOT_FOUND);
+                    }
+                    if (!string.IsNullOrEmpty(request.Fullname))
+                    {
+                        user.FullName = request.Fullname;
+                    }
+                    user.PhoneNumber = request.PhoneNumber;
+
+                    var updateRes = await _userManager.UpdateAsync(user);
+                    if (!updateRes.Succeeded)
+                    {
+                        throw new Exception(ErrorMessage.INVALID);
+                    }
+
+                    var currentRoles = await _userManager.GetRolesAsync(user);
+                    var removeRole = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                    if (!removeRole.Succeeded)
+                    {
+                        throw new Exception(ErrorMessage.INVALID);
+                    }
+
+                    var addRoles = await _userManager.AddToRolesAsync(user, request.Roles);
+                    if (!addRoles.Succeeded)
+                    {
+                        throw new Exception(ErrorMessage.INVALID);
+                    }
+                    await _transactionRepository.CommitTransactionAsync();
+                    return new UserDTO
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        PhoneNumber = user.PhoneNumber,
+                        FullName = user.FullName,
+                    };
+                }
+                catch (Exception ex)
+                {
+                    await _transactionRepository.RollbackTransactionAsync();
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
+        public async Task<UserDTO> GetUser(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId)
+                ?? throw new Exception(ErrorMessage.NOT_FOUND);
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return new UserDTO
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+                Roles = roles,
+                PhoneNumber = user.PhoneNumber
+            };
         }
 
         public async Task<bool> SendCode(string email)

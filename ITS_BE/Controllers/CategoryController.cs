@@ -28,7 +28,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpPost("")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Create([FromBody] NameRequest request)
         {
             try
@@ -44,7 +44,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Update(int id, [FromBody] NameRequest request)
         {
             try
@@ -64,7 +64,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Delete(int id)
         {
             try

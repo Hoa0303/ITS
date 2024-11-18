@@ -12,7 +12,7 @@ namespace ITS_BE.Controllers
         private readonly IStatisticService _statisticService = statisticService;
 
         [HttpGet("count-receipt")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetCountReceipt()
         {
             try
@@ -27,7 +27,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("count-order")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetCountOrder()
         {
             try
@@ -42,7 +42,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("count-product")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetCountProduct()
         {
             try
@@ -57,7 +57,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("count-user")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetCountUser()
         {
             try
@@ -72,7 +72,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("total-revenue-by-year")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetRevenueByYear(int year, int? month)
         {
             try
@@ -87,7 +87,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("total-revenue")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetRevenue(DateTime dateFrom, DateTime dateTo)
         {
             try
@@ -102,7 +102,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("total-product-revenue-by-year")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetProductRevenueByYear(int year, int? month, int productId)
         {
             try
@@ -117,7 +117,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("total-product-revenue")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Statist")]
         public async Task<IActionResult> GetProductRevenue(DateTime dateFrom, DateTime dateTo, int productId)
         {
             try

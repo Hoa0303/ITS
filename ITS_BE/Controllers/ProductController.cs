@@ -24,6 +24,20 @@ namespace ITS_BE.Controllers
             }
         }
 
+        [HttpGet("descending-by sold")]
+        public async Task<IActionResult> DescendingBySold([FromQuery] PageResquest request)
+        {
+            try
+            {
+                var res = await _productService.OrderByDescendingBySold(request.page, request.pageSize);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
 
         [HttpGet("filters")]
         public async Task<IActionResult> GetFilterProducts([FromQuery] Filters filters)
@@ -78,7 +92,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("color/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> GetColorById(int id)
         {
             try
@@ -93,7 +107,6 @@ namespace ITS_BE.Controllers
         }
 
         [HttpGet("name")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Name()
         {
             try
@@ -108,7 +121,7 @@ namespace ITS_BE.Controllers
         }
 
         [HttpPost("")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> Create([FromForm] ProductRequest request, [FromForm] IFormFileCollection form)
 
         {
@@ -125,7 +138,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> Update(int id, [FromForm] ProductRequest request, [FromForm] IFormCollection form)
         {
             try
@@ -146,7 +159,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpPut("updateEnable/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> UpdateEnable(int id, [FromBody] UpdateEnableRequest request)
         {
             try
@@ -166,7 +179,7 @@ namespace ITS_BE.Controllers
 
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Stocker")]
         public async Task<IActionResult> Delete(int id)
         {
             try

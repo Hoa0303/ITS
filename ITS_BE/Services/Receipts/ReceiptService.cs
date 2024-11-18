@@ -56,6 +56,7 @@ namespace ITS_BE.Services.Receipts
                 {
                     var productColor = await _productColorRepository
                         .SingleOrDefaultAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+                    var product = await _productRepository.SingleOrDefaultAsync(e=>e.Id == item.ProductId);
                     if (productColor != null)
                     {
                         productColor.Quantity += item.Quantity;
@@ -69,6 +70,7 @@ namespace ITS_BE.Services.Receipts
                         ColorId = item.ColorId,
                         Quantity = item.Quantity,
                         CostPrice = item.CostPrice,
+                        ProductName = product?.Name ?? "",
                     };
                     listReceiptDetail.Add(receiptDetail);
                 }
