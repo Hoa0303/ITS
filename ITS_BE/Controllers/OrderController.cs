@@ -262,6 +262,5 @@ namespace ITS_BE.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
     }
 }

@@ -10,10 +10,13 @@ using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductRepository;
 using ITS_BE.Repository.ReviewRepository;
+using ITS_BE.Repository.TransactionRepository;
+using ITS_BE.Repository.UserRepository;
 using ITS_BE.Request;
 using ITS_BE.Response;
 using ITS_BE.Services.Caching;
 using ITS_BE.Services.Payment;
+using ITS_BE.Services.SendEmail;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -31,18 +34,22 @@ namespace ITS_BE.Services.Orders
         private readonly ICartItemRepository _cartItemRepository;
         private readonly IPaymentMethodRepository _paymentMethodRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
         private readonly IPaymentService _paymentService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ICachingService _cachingService;
+        private readonly ITransactionRepository _transactionRepository;
+        private readonly ISendEmailService _sendEmailService;
         private readonly IMapper _mapper;
 
         public OrderService(IOrderRepository orderRepository,
             IProductRepository productRepository, IProductColorRepository productColorRepository,
             ICartItemRepository cartItemRepository, IPaymentMethodRepository paymentMethodRepository,
             IOrderDetailRepository orderDetailRepository, IPaymentService paymentService,
-            IServiceScopeFactory serviceScopeFactory, ICachingService cachingService,
-            IConfiguration configuration, IMapper mapper, IReviewRepository reviewRepository)
+            ITransactionRepository transactionRepository, IServiceScopeFactory serviceScopeFactory,
+            ICachingService cachingService, IConfiguration configuration, ISendEmailService sendEmailService,
+            IUserRepository userRepository, IMapper mapper, IReviewRepository reviewRepository)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
@@ -51,10 +58,13 @@ namespace ITS_BE.Services.Orders
             _cartItemRepository = cartItemRepository;
             _paymentMethodRepository = paymentMethodRepository;
             _orderDetailRepository = orderDetailRepository;
+            _userRepository = userRepository;
+            _transactionRepository = transactionRepository;
             _configuration = configuration;
             _paymentService = paymentService;
             _cachingService = cachingService;
             _serviceScopeFactory = serviceScopeFactory;
+            _sendEmailService = sendEmailService;
             _mapper = mapper;
         }
         struct OrderCache
@@ -68,6 +78,7 @@ namespace ITS_BE.Services.Orders
 
         public async Task<string?> CreateOrder(string userId, OrderRequest request)
         {
+            using var transaction = await _transactionRepository.BeginTransactionAsync();
             try
             {
                 var now = DateTime.Now;
@@ -137,6 +148,7 @@ namespace ITS_BE.Services.Orders
                 await _productColorRepository.UpdateAsync(listProductColorUpdate);
                 await _cartItemRepository.DeleteAsync(cartItems);
 
+                string? paymentUrl = null;
                 if (method.Name == PaymentMethodEnum.VNPay.ToString())
                 {
                     var orderInfor = new VNPayOrder
@@ -148,7 +160,7 @@ namespace ITS_BE.Services.Orders
                         OrderInfor = "Đơn hàng: " + order.Id
                     };
                     var IpAddr = "127.0.0.1";
-                    var paymentUrl = _paymentService.GetPaymentUrl(orderInfor, IpAddr);
+                    paymentUrl = _paymentService.GetPaymentUrl(orderInfor, IpAddr);
 
                     var orderCache = new OrderCache()
                     {
@@ -164,14 +176,47 @@ namespace ITS_BE.Services.Orders
                         AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(15)
                     };
                     cacheOpts.RegisterPostEvictionCallback(OnVNPayDeadline, this);
-                    _cachingService.Set("Order " + order.Id, orderCache, cacheOpts);
-                    return paymentUrl;
+                    _cachingService.Set("Order " + order.Id, orderCache, cacheOpts);                    
+                    //await SendEmail(order, listOrderDetail);
                 }
-                return null;
+                await transaction.CommitAsync();
+                await SendEmail(order, listOrderDetail);
+                return paymentUrl;
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task SendEmail(Order order, IEnumerable<OrderDetail> orderDetail)
+        {
+            var pathEmail = _sendEmailService.GetPathOrderConfirm;
+            var pathProduct = _sendEmailService.GetPathProductList;
+
+            if (File.Exists(pathEmail) && File.Exists(pathProduct))
+            {
+                var user = await _userRepository.SingleAsync(x => x.Id == order.UserId);
+
+                string body = File.ReadAllText(pathEmail);
+                body = body.Replace("{OrderDate}", order.OrderDate.ToString());
+                body = body.Replace("{UserName}", order.Receiver);
+                body = body.Replace("{Address}", order.DeliveryAddress);
+                body = body.Replace("{Method}", order.PaymentMethodName);
+
+                string productList = File.ReadAllText(pathProduct);
+                string listProductBody = "";
+
+                foreach(var item in orderDetail)
+                {
+                    string res = productList.Replace("{PRODUCTNAME}", item.ProductName);
+                    res = res.Replace("{COLORNAME}", item.ColorName);
+                    res = res.Replace("{QUANTITY}", item.Quantity.ToString());
+                    listProductBody += res;
+                }
+                body = body.Replace("{list_product}", listProductBody);
+                _ = Task.Run(() => _sendEmailService.SendEmailAsync(user.Email!, "Cảm ơn bạn đã đặt hàng tại IT Store!", body));
             }
         }
 
@@ -351,15 +396,15 @@ namespace ITS_BE.Services.Orders
                         {
                             var color = await _productColorRepository
                                 .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
-                            if(color != null)
+                            if (color != null)
                             {
                                 item.Product.Sold -= item.Quantity;
                                 listProductUpdate.Add(item.Product);
 
                                 color.Quantity += item.Quantity;
                                 listProductColorUpdate.Add(color);
-                            }    
-                        }               
+                            }
+                        }
                     }
 
                     _cachingService.Remove("Order " + orderId);
@@ -404,17 +449,19 @@ namespace ITS_BE.Services.Orders
 
                     foreach (var item in orderDetail)
                     {
-                        var color = await _productColorRepository
-                            .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
-                        if(color != null)
+                        if (item.ProductId != null)
                         {
-                            item.Product.Sold -= item.Quantity;
-                            listProductUpdate.Add(item.Product);
+                            var color = await _productColorRepository
+                                .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+                            if (color != null)
+                            {
+                                item.Product.Sold -= item.Quantity;
+                                listProductUpdate.Add(item.Product);
 
-                            color.Quantity += item.Quantity;
-                            listProductColorUpdate.Add(color);
+                                color.Quantity += item.Quantity;
+                                listProductColorUpdate.Add(color);
+                            }
                         }
-                        else continue;                        
                     }
                     _cachingService.Remove("Order " + orderId);
                     await _orderRepository.UpdateAsync(order);

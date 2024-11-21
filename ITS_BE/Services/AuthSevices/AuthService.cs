@@ -240,7 +240,7 @@ namespace ITS_BE.Services.AuthSevices
             _cachingService.Set(email, token);
 
             var message = $"Your verification code is: {token}";
-            await _sendEmailService.SendEmailAsync(email, "Verification code", message);
+            await _sendEmailService.SendEmailAsync(email, "Mã xác nhận tài khoản ITS", message);
 
             return true;
         }

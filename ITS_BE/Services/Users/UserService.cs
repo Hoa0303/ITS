@@ -76,14 +76,14 @@ namespace ITS_BE.Services.Users
                 users = await _userRepository.GetPagedOrderByDescendingAsync(page, pageSize, expression, e => e.CreateAt);
             }
 
-            //var items = _mapper.Map<IEnumerable<UserResponse>>(users).Select(e =>
-            //{
-            //    e.LockedOut = e.LockoutEnd > DateTime.Now;
-            //    e.LockoutEnd = e.LockoutEnd > DateTime.Now ? e.LockoutEnd : null;
-            //    return e;
-            //});
+            var items = _mapper.Map<IEnumerable<UserResponse>>(users).Select(e =>
+            {
+                e.LockedOut = e.LockoutEnd > DateTime.Now;
+                e.LockoutEnd = e.LockoutEnd > DateTime.Now ? e.LockoutEnd : null;
+                return e;
+            });
 
-            var items = _mapper.Map<IEnumerable<UserResponse>>(users);
+            //var items = _mapper.Map<IEnumerable<UserResponse>>(users);
 
             return new PageRespone<UserResponse>
             {
@@ -100,7 +100,7 @@ namespace ITS_BE.Services.Users
             if (user != null)
             {
                 if (endDate != null)
-                    user.LockoutEnd = endDate.Value.AddDays(1);
+                    user.LockoutEnd = endDate.Value;
                 else user.LockoutEnd = endDate;
 
                 await _userManager.UpdateAsync(user);

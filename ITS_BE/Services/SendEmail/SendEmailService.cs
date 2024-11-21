@@ -16,10 +16,12 @@ namespace ITS_BE.Services.SendEmail
     public class SendEmailService : ISendEmailService
     {
         private readonly EmailSetting _setting;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public SendEmailService(IOptions<EmailSetting> settings)
+        public SendEmailService(IOptions<EmailSetting> settings, IWebHostEnvironment webHostEnvironment)
         {
             _setting = settings.Value;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task SendEmailAsync(string email, string subject, string htmlMess)
@@ -55,5 +57,17 @@ namespace ITS_BE.Services.SendEmail
                 await smtp.DisconnectAsync(true);
             }
         }
+        public string GetPathOrderConfirm => Path.Combine(_webHostEnvironment.ContentRootPath, "Template", "confirm_email.txt");
+        public string GetPathProductList => Path.Combine(_webHostEnvironment.ContentRootPath, "Template", "list_product.txt");
+        //public string GetPathOrderConfirm()
+        //{
+        //    var path = Path.Combine(_webHostEnvironment.ContentRootPath, "Template", "confirm_email.txt");
+        //    return path;
+        //}
+        //public string GetPathProductList()
+        //{
+        //    var path = Path.Combine(_webHostEnvironment.ContentRootPath, "Template", "list_product.txt");
+        //    return path;
+        //}
     }
 }

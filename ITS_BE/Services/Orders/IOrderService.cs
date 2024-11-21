@@ -15,6 +15,7 @@ namespace ITS_BE.Services.Orders
         Task Review(long orderId, string userId, IEnumerable<ReviewRequest> reviews);
         Task Received(long orderId);
         Task<PageRespone<OrderDTO>> GetWithOrderStatus(string userId, DeliveryStatusEnum statusEnum, PageResquest request);
+        Task SendEmail(Order order, IEnumerable<OrderDetail> orderDetail);
 
 
         //Admin
