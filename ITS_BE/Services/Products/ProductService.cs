@@ -372,7 +372,7 @@ namespace ITS_BE.Services.Products
 
                     var existingProductColors = await _productColorRepository.GetColorProductAsync(id);
                     var existingColorIds = existingProductColors.Select(pc => pc.ColorId).ToList();
-                    var requestColorIds = request.Color.Select(c => c.ColorId).ToList();
+                    var requestColorIds = request.Color.Select(c => c.ColorId).ToList();                    
 
                     var colorsToRemove = existingProductColors.Where(pc => !requestColorIds.Contains(pc.ColorId)).ToList();
                     if (colorsToRemove.Any())

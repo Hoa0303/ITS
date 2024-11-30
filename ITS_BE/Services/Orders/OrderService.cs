@@ -17,6 +17,7 @@ using ITS_BE.Response;
 using ITS_BE.Services.Caching;
 using ITS_BE.Services.Payment;
 using ITS_BE.Services.SendEmail;
+using MailKit.Search;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -173,14 +174,13 @@ namespace ITS_BE.Services.Orders
 
                     var cacheOpts = new MemoryCacheEntryOptions
                     {
-                        AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(15)
+                        AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(1)
                     };
                     cacheOpts.RegisterPostEvictionCallback(OnVNPayDeadline, this);
-                    _cachingService.Set("Order " + order.Id, orderCache, cacheOpts);                    
-                    //await SendEmail(order, listOrderDetail);
+                    _cachingService.Set("Order " + order.Id, orderCache, cacheOpts);
                 }
                 await transaction.CommitAsync();
-                await SendEmail(order, listOrderDetail);
+                //await SendEmail(order, listOrderDetail);
                 return paymentUrl;
             }
             catch (Exception ex)
@@ -208,7 +208,7 @@ namespace ITS_BE.Services.Orders
                 string productList = File.ReadAllText(pathProduct);
                 string listProductBody = "";
 
-                foreach(var item in orderDetail)
+                foreach (var item in orderDetail)
                 {
                     string res = productList.Replace("{PRODUCTNAME}", item.ProductName);
                     res = res.Replace("{COLORNAME}", item.ColorName);
@@ -267,6 +267,9 @@ namespace ITS_BE.Services.Orders
             {
                 using var _scope = _serviceScopeFactory.CreateScope();
                 var orderRepository = _scope.ServiceProvider.GetRequiredService<IOrderRepository>();
+                var orderDetailRepository = _scope.ServiceProvider.GetRequiredService<IOrderDetailRepository>();
+                var productRepository = _scope.ServiceProvider.GetRequiredService<IProductRepository>();
+                var productColorRepository = _scope.ServiceProvider.GetRequiredService<IProductColorRepository>();
                 var vnPayLibary = _scope.ServiceProvider.GetRequiredService<IVNPayLibrary>();
                 var configuration = _scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
@@ -301,7 +304,7 @@ namespace ITS_BE.Services.Orders
                     queryDr.vnp_OrderInfo,
                     queryDr.vnp_TmnCode,
                     queryDr.vnp_TxnRef,
-                    vnPayLibary = checksum
+                    vnp_SecureHash = checksum,
                 };
 
                 using var httpClient = new HttpClient();
@@ -311,15 +314,18 @@ namespace ITS_BE.Services.Orders
 
                 if (queryDrResponse != null)
                 {
-                    bool checkSingature = vnPayLibary.ValidateQueryDrSignature(queryDrResponse, queryDrResponse.vnp_SecureHash, vnp_HashSecret);
-                    if (checkSingature && queryDrResponse.vnp_ResponseCode == "00")
+                    bool checkSingature = vnPayLibary
+                        .ValidateQueryDrSignature(queryDrResponse, queryDrResponse.vnp_SecureHash, vnp_HashSecret);
+                    if (checkSingature)
                     {
                         var order = await orderRepository.FindAsync(data.OrderId);
                         if (order != null)
                         {
                             long vnp_Amount = Convert.ToInt64(queryDrResponse.vnp_Amount) / 100;
 
-                            if (queryDrResponse.vnp_TransactionStatus == "00" && vnp_Amount == order.Total)
+                            if (queryDrResponse.vnp_TransactionStatus == "00"
+                                && queryDrResponse.vnp_ResponseCode == "00"
+                                && vnp_Amount == order.Total)
                             {
                                 order.PaymentTranId = queryDrResponse.vnp_TransactionNo;
                                 order.AmountPaid = vnp_Amount;
@@ -328,6 +334,27 @@ namespace ITS_BE.Services.Orders
                             else
                             {
                                 order.OrderStatus = DeliveryStatusEnum.Canceled;
+
+                                var orderDetail = await orderDetailRepository.GetAsync(e => e.Id == order.Id);
+                                var listProductColorUpdate = new List<Product_Color>();
+                                var listProductUpdate = new List<Product>();
+
+                                foreach (var item in orderDetail)
+                                {
+                                    var color = await productColorRepository
+                                        .SingleAsync(e => e.ProductId == item.ProductId && e.ColorId == item.ColorId);
+                                    if (color != null)
+                                    {
+                                        item.Product.Sold -= item.Quantity;
+                                        listProductUpdate.Add(item.Product);
+
+                                        color.Quantity += item.Quantity;
+                                        listProductColorUpdate.Add(color);
+                                    }
+                                }
+                                _cachingService.Remove("Order " + order.Id);
+                                await productRepository.UpdateAsync(listProductUpdate);
+                                await productColorRepository.UpdateAsync(listProductColorUpdate);
                             }
                             await orderRepository.UpdateAsync(order);
                         }

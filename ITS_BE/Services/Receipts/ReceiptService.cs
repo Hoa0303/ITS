@@ -9,6 +9,7 @@ using ITS_BE.Request;
 using ITS_BE.Response;
 using ITS_BE.Services.History;
 using Microsoft.AspNetCore.Identity;
+using System.Linq.Expressions;
 
 namespace ITS_BE.Services.Receipts
 {
@@ -96,8 +97,14 @@ namespace ITS_BE.Services.Receipts
             }
             else
             {
+                bool isLong = long.TryParse(key, out long idSearch);
+
+                Expression<Func<Receipt, bool>> expression =
+                    e => e.Id.Equals(idSearch)
+                    || (!isLong && e.User.FullName != null && e.User.FullName.Contains(key));
+
                 total = await _receiptRepository.CountAsync();
-                receipts = await _receiptRepository.GetPagedOrderByDescendingAsync(page, pageSize, null, e => e.CreateAt);
+                receipts = await _receiptRepository.GetPagedOrderByDescendingAsync(page, pageSize, expression, e => e.CreateAt);
             }
 
             var item = _mapper.Map<IEnumerable<ReceiptDTO>>(receipts);
