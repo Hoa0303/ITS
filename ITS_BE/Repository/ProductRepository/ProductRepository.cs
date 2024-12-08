@@ -23,10 +23,10 @@ namespace ITS_BE.Repository.ProductRepository
         public async Task<IEnumerable<Product>> GetPageProduct(int page, int pageSize, string search)
         {
             return await _context.Products
-                .Where(e => e.Name.Contains(search) || e.Id.ToString().Equals(search))
+                .Where(e => e.Name.Contains(search) || e.Id.ToString().Equals(search) || e.Brand.Name.Contains(search))
                 .Include(e => e.Brand)
                 .Include(e => e.Category)
-                .OrderBy(e => e.Name)
+                .OrderByDescending(e => e.Sold)
                 .Paginate(page, pageSize)
                 .ToListAsync();
         }
@@ -36,7 +36,7 @@ namespace ITS_BE.Repository.ProductRepository
             return await _context.Products
                 .Include(e => e.Brand)
                 .Include(e => e.Category)
-                .OrderBy(e => e.Name)
+                .OrderByDescending(e => e.Sold)
                 .Paginate(page, pageSize)                
                 .ToListAsync();
         }

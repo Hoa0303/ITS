@@ -160,10 +160,10 @@ namespace ITS_BE.Services.Users
 
         public async Task<UserDTO> GetUserInfo(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            var role = await _userManager.GetRolesAsync(user);
+            var user = await _userManager.FindByIdAsync(userId);            
             if (user != null)
             {
+                var role = await _userManager.GetRolesAsync(user);
                 var res = _mapper.Map<UserDTO>(user);
                 res.Email = res.Email != null ? MaskEmail(res.Email) : "";
                 res.Roles = role;

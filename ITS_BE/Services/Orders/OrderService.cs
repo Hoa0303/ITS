@@ -6,6 +6,7 @@ using ITS_BE.Library;
 using ITS_BE.Models;
 using ITS_BE.ModelView;
 using ITS_BE.Repository.CartItemRepository;
+using ITS_BE.Repository.ImageRepository;
 using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Repository.ProductColorRepository;
 using ITS_BE.Repository.ProductRepository;
@@ -31,6 +32,7 @@ namespace ITS_BE.Services.Orders
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
         private readonly IProductColorRepository _productColorRepository;
+        private readonly IImageRepository _imageRepository;
         private readonly IReviewRepository _reviewRepository;
         private readonly ICartItemRepository _cartItemRepository;
         private readonly IPaymentMethodRepository _paymentMethodRepository;
@@ -50,7 +52,8 @@ namespace ITS_BE.Services.Orders
             IOrderDetailRepository orderDetailRepository, IPaymentService paymentService,
             ITransactionRepository transactionRepository, IServiceScopeFactory serviceScopeFactory,
             ICachingService cachingService, IConfiguration configuration, ISendEmailService sendEmailService,
-            IUserRepository userRepository, IMapper mapper, IReviewRepository reviewRepository)
+            IUserRepository userRepository, IMapper mapper, 
+            IReviewRepository reviewRepository, IImageRepository imageRepository)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
@@ -65,6 +68,7 @@ namespace ITS_BE.Services.Orders
             _paymentService = paymentService;
             _cachingService = cachingService;
             _serviceScopeFactory = serviceScopeFactory;
+            _imageRepository = imageRepository;
             _sendEmailService = sendEmailService;
             _mapper = mapper;
         }
@@ -180,7 +184,7 @@ namespace ITS_BE.Services.Orders
                     _cachingService.Set("Order " + order.Id, orderCache, cacheOpts);
                 }
                 await transaction.CommitAsync();
-                //await SendEmail(order, listOrderDetail);
+                await SendEmail(order, listOrderDetail);
                 return paymentUrl;
             }
             catch (Exception ex)
@@ -720,6 +724,33 @@ namespace ITS_BE.Services.Orders
                 else throw new InvalidDataException(ErrorMessage.ERROR);
             }
             else throw new InvalidDataException(ErrorMessage.NOT_FOUND);
+        }
+
+        public async Task<PageRespone<ProductDTO>> OrderByDescendingBySold(int page, int pageSize)
+        {
+            int totalProduct;
+            IEnumerable<ProductDTO> products;
+            totalProduct = await _orderDetailRepository.CountSold();
+            products = await _orderDetailRepository.OrderByDescendingBySoldInCurrentMonth(page, pageSize);
+
+            var res = _mapper.Map<IEnumerable<ProductDTO>>(products);
+
+            foreach (var product in res)
+            {
+                var image = await _imageRepository.GetFirstByProductAsync(product.Id);
+                if (image != null)
+                {
+                    product.ImageUrl = image.ImageUrl;
+                }
+            }
+
+                return new PageRespone<ProductDTO>
+            {
+                Items = res,
+                TotalItems = totalProduct,
+                Page = page,
+                PageSize = pageSize
+            };
         }
     }
 }

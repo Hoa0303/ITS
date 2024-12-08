@@ -6,6 +6,7 @@ using ITS_BE.Library;
 using ITS_BE.ModelView;
 using ITS_BE.Repository.OrderRepository;
 using ITS_BE.Services.Caching;
+using ITS_BE.Services.Orders;
 
 namespace ITS_BE.Services.Payment
 {
@@ -20,7 +21,7 @@ namespace ITS_BE.Services.Payment
 
         public PaymentService(IPaymentMethodRepository paymentmethodRepository, IConfiguration configuration,
             IVNPayLibrary vnPayLibrary, IMapper mapper, ICachingService cachingService,
-            IOrderRepository orderRepository)
+             IOrderRepository orderRepository)
         {
             _paymentmethodRepository = paymentmethodRepository;
             _orderRepository = orderRepository;
@@ -101,7 +102,6 @@ namespace ITS_BE.Services.Payment
                         order.PaymentTranId = request.vnp_TransactionNo;
                         order.AmountPaid = vnp_Amount;
                         order.OrderStatus = DeliveryStatusEnum.Confirmed;
-
                         await _orderRepository.UpdateAsync(order);
                         _cachingService.Remove("Order " + orderId);
                     }

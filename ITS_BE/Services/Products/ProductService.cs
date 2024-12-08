@@ -283,7 +283,7 @@ namespace ITS_BE.Services.Products
                     //    break;
                     default:
                         products = await _productRepository
-                           .GetPagedAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
+                           .GetPagedOrderByDescendingAsync(filters.page, filters.pageSize, expression, e => e.CreateAt);
                         break;
                 }
                 var res = _mapper.Map<IEnumerable<ProductDTO>>(products).ToList();

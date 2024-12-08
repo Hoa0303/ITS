@@ -169,7 +169,7 @@ namespace ITS_BE.Controllers
             try
             {
                 var role = User.FindAll(ClaimTypes.Role).Select(e => e.Value);
-                var admin = role.Any(e=>e.Equals("Admin") || e.Equals("Statist") || e.Equals("Employee") );
+                var admin = role.Any(e => e.Equals("Admin") || e.Equals("Statist") || e.Equals("Employee"));
                 if (admin)
                 {
                     var order = await _orderService.GetOrderDetail(id);
@@ -262,5 +262,20 @@ namespace ITS_BE.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("descending-by-sold")]
+        public async Task<IActionResult> DescendingBySoldInCurrentMonth([FromQuery] PageResquest request)
+        {
+            try
+            {
+                var res = await _orderService.OrderByDescendingBySold(request.page, request.pageSize);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
     }
 }

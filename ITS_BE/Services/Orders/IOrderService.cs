@@ -26,5 +26,6 @@ namespace ITS_BE.Services.Orders
         Task ShippingOrder(long orderId, OrderShippingRequest request);
         Task CancelOrder(long orderId);
         Task DeleteOrder(long orderId);
+        Task<PageRespone<ProductDTO>> OrderByDescendingBySold(int page, int pageSize);
     }
 }
