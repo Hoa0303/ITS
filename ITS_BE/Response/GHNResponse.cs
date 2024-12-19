@@ -2,7 +2,7 @@
 {
     public class GHNData
     {
-        public string OrderCode { get; set; }
+        public string Order_code { get; set; }
         public DateTime Expected_delivery_time { get; set; }
     }
     public class GHNResponse

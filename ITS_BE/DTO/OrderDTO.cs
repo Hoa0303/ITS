@@ -11,6 +11,7 @@ namespace ITS_BE.DTO
         public string PaymentMethod { get; set; }
         public bool Reviewed { get; set; }
         public DeliveryStatusEnum OrderStatus { get; set; }
+        public string? ShippingCode { get; set; }
 
         public string? PayBackUrl { get; set; }
     }

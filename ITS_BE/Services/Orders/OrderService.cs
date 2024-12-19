@@ -52,7 +52,7 @@ namespace ITS_BE.Services.Orders
             IOrderDetailRepository orderDetailRepository, IPaymentService paymentService,
             ITransactionRepository transactionRepository, IServiceScopeFactory serviceScopeFactory,
             ICachingService cachingService, IConfiguration configuration, ISendEmailService sendEmailService,
-            IUserRepository userRepository, IMapper mapper, 
+            IUserRepository userRepository, IMapper mapper,
             IReviewRepository reviewRepository, IImageRepository imageRepository)
         {
             _orderRepository = orderRepository;
@@ -238,6 +238,8 @@ namespace ITS_BE.Services.Orders
         {
             int total;
             IEnumerable<Order> orders;
+
+            key = key?.ToLower();
             if (string.IsNullOrEmpty(key))
             {
                 total = await _orderRepository.CountAsync();
@@ -249,7 +251,8 @@ namespace ITS_BE.Services.Orders
 
                 Expression<Func<Order, bool>> expression =
                     e => e.Id.Equals(idSearch)
-                    || (!isLong && e.PaymentMethodName != null && e.PaymentMethodName.Contains(key));
+                    || (!isLong && e.PaymentMethodName != null && e.PaymentMethodName.ToLower().Contains(key)
+                    || (e.ShippingCode != null && e.ShippingCode.ToLower().Contains(key)));
 
                 total = await _orderRepository.CountAsync(expression);
                 orders = await _orderRepository.GetPagedOrderByDescendingAsync(page, pageSize, expression, e => e.CreateAt);
@@ -567,7 +570,7 @@ namespace ITS_BE.Services.Orders
                 throw new Exception(dataRes?.Message ?? ErrorMessage.INVALID);
             }
 
-            order.ShippingCode = dataRes?.Data?.OrderCode;
+            order.ShippingCode = dataRes?.Data?.Order_code;
             order.Expected_delivery_time = dataRes?.Data?.Expected_delivery_time;
             order.OrderStatus = DeliveryStatusEnum.Shipping;
             await _orderRepository.UpdateAsync(order);
@@ -614,6 +617,7 @@ namespace ITS_BE.Services.Orders
                     await _reviewRepository.AddAsync(pReview);
                 }
                 order.Reviewed = true;
+                order.OrderStatus += 1;
                 await _orderRepository.UpdateAsync(order);
             }
             catch (Exception)
@@ -646,8 +650,9 @@ namespace ITS_BE.Services.Orders
                 bool isLong = long.TryParse(key, out long idSearch);
                 Expression<Func<Order, bool>> expression =
                     e => e.OrderStatus == statusEnum &&
-                    (isLong && e.Id.Equals(idSearch)
-                    || e.PaymentMethodName.ToLower().Contains(key));
+                    e.Id.Equals(idSearch)
+                    || (!isLong && e.PaymentMethodName != null && e.PaymentMethodName.ToLower().Contains(key)
+                    || (e.ShippingCode != null && e.ShippingCode.ToLower().Contains(key)));
 
                 total = await _orderRepository.CountAsync(expression);
                 orders = await _orderRepository.GetPagedOrderByDescendingAsync(request.page, request.pageSize, expression, sortExpression);
@@ -744,7 +749,7 @@ namespace ITS_BE.Services.Orders
                 }
             }
 
-                return new PageRespone<ProductDTO>
+            return new PageRespone<ProductDTO>
             {
                 Items = res,
                 TotalItems = totalProduct,
